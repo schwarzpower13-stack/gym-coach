@@ -40,7 +40,7 @@ function learnStatus(k) {
   if (lg.pt || lg.en) return k < TODAY ? 'part' : 'pend';
   return k < TODAY ? 'miss' : 'pend';
 }
-CATS.push(['lang', '🗣️', 'ენები']); XSTAT.lang = learnStatus;
+CATS.push(['lang', '🗣️', 'Languages']); XSTAT.lang = learnStatus;
 function learnStreak() { let n = 0; for (let i = 0; i < 400; i++) { const k = dkey(addDays(new Date(), -i)); const s = learnStatus(k); if (s === 'done') n++; else if (i === 0 && s === 'pend') continue; else break; } return n; }
 
 function vLearn() {

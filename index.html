@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ka">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -233,16 +233,16 @@ nav button.on { color: var(--acc); }
 <main class="wrap" id="app"></main>
 <input type="file" id="photoIn" accept="image/*" hidden onchange="onPhoto(this)">
 <div class="rest" id="rest">
-  <div style="flex:1"><div style="font-size:12px;font-weight:600">დასვენება</div><b id="restT">0:00</b></div>
+  <div style="flex:1"><div style="font-size:12px;font-weight:600">Rest</div><b id="restT">0:00</b></div>
   <button id="restMinus">−15</button><button id="restPlus">+15</button><button id="restSkip">✕</button>
 </div>
 <nav id="nav">
-  <button data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>დღეს</button>
-  <button data-tab="train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg>ვარჯიში</button>
-  <button data-tab="food"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 21V3c-2 0-3.5 2.5-3.5 6s1.5 5 3.5 5"/></svg>კვება</button>
-  <button data-tab="spirit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-4 3-6 5-9zM12 21v-4"/></svg>სული</button>
-  <button data-tab="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4zM20 5h-4a2 2 0 0 0-2 2"/></svg>სწავლა</button>
-  <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>პროგრესი</button>
+  <button data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Today</button>
+  <button data-tab="train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></svg>Training</button>
+  <button data-tab="food"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 21V3c-2 0-3.5 2.5-3.5 6s1.5 5 3.5 5"/></svg>Food</button>
+  <button data-tab="spirit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3c2 3 5 5 5 9a5 5 0 0 1-10 0c0-4 3-6 5-9zM12 21v-4"/></svg>Mind</button>
+  <button data-tab="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4zM20 5h-4a2 2 0 0 0-2 2"/></svg>Learn</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Progress</button>
 </nav>
 <script src="data.js"></script>
 <script src="discipline.js"></script>

@@ -12,32 +12,32 @@ async function packData() {
   return 'COACHDATA1:' + JSON.stringify({ S, P });
 }
 async function copyForMove(btn) {
-  btn.disabled = true; btn.textContent = '⏳ ვამზადებ...';
+  btn.disabled = true; btn.textContent = '⏳ Preparing...';
   const txt = await packData();
   const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
   document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
   let ok = false; try { ok = document.execCommand('copy'); } catch { }
   if (!ok && navigator.clipboard) { try { await navigator.clipboard.writeText(txt); ok = true; } catch { } }
   ta.remove(); btn.disabled = false;
-  btn.textContent = ok ? '✅ დაკოპირდა — ახლა გახსენი ახალი აპი და ჩასვი' : '⚠️ ვერ დაკოპირდა, სცადე თავიდან';
+  btn.textContent = ok ? '✅ Copied — now open the new app and paste' : '⚠️ Couldn’t copy, try again';
 }
 async function importMoved(txt) {
-  const i = txt.indexOf('COACHDATA1:'); if (i < 0) { toast('⚠️ ეს ძველი აპის მონაცემები არ არის'); return; }
+  const i = txt.indexOf('COACHDATA1:'); if (i < 0) { toast('⚠️ This isn’t data from the old app'); return; }
   try {
     const { S: old, P } = JSON.parse(txt.slice(i + 11));
     for (const [id, url] of Object.entries(P || {})) { const b = await (await fetch(url)).blob(); await putPhoto(id, b); }
-    S = Object.assign({}, DEF, old, { migrated: true }); save(); render(); toast('🎉 ყველა მონაცემი გადმოვიდა');
-  } catch { toast('⚠️ მონაცემები ვერ წავიკითხე — სცადე თავიდან დაკოპირება'); }
+    S = Object.assign({}, DEF, old, { migrated: true }); save(); render(); toast('🎉 All data moved over');
+  } catch { toast('⚠️ Couldn’t read the data — try copying again'); }
 }
 function moveCard() {
-  if (IS_LAN && APP_HOME) return `<div class="card" style="border-color:var(--acc)"><b>🚀 აპი გადავიდა მუდმივ მისამართზე</b>
-    <p class="note">ახალი აპი ყველგან მუშაობს — კომპიუტერის და სახლის Wi-Fi-ს გარეშე. შენი მონაცემები ერთხელ გადავიტანოთ:</p>
-    <ol class="steps"><li>Safari-ში გახსენი <b style="user-select:all">${APP_HOME}</b> → Share → <b>Add to Home Screen</b></li><li>აქ დააჭირე ღილაკს ქვემოთ</li><li>გახსენი ახალი აპი → შეეხე ველს → <b>Paste</b></li><li>ძველი აიქონი წაშალე</li></ol>
-    <button class="btn acc block" onclick="copyForMove(this)">📦 მონაცემების დაკოპირება</button></div>`;
+  if (IS_LAN && APP_HOME) return `<div class="card" style="border-color:var(--acc)"><b>🚀 The app moved to a permanent address</b>
+    <p class="note">The new app works everywhere — without the computer and home Wi-Fi. Let’s move your data over once:</p>
+    <ol class="steps"><li>In Safari open <b style="user-select:all">${APP_HOME}</b> → Share → <b>Add to Home Screen</b></li><li>tap the button below here</li><li>open the new app → tap the field → <b>Paste</b></li><li>delete the old icon</li></ol>
+    <button class="btn acc block" onclick="copyForMove(this)">📦 Copy data</button></div>`;
   const empty = !Object.keys(S.logs).length && !S.profile.w && !Object.keys(S.photos || {}).length && !Object.keys(S.health).length;
-  if (!IS_LAN && !S.migrated && empty) return `<div class="card" style="border-color:var(--acc)"><b>👋 ძველი აპიდან გადმოტანა</b>
-    <p class="note">ძველ აპში (სახლის Wi-Fi) დააჭირე „📦 მონაცემების დაკოპირება", მერე აქ ველს შეეხე → <b>Paste</b>.</p>
-    <textarea rows="2" placeholder="შეეხე აქ → Paste" onpaste="setTimeout(() => importMoved(this.value), 50)" style="width:100%;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea>
-    <button class="btn sm" style="margin-top:8px" onclick="S.migrated=true;save();render()">ახლიდან ვიწყებ</button></div>`;
+  if (!IS_LAN && !S.migrated && empty) return `<div class="card" style="border-color:var(--acc)"><b>👋 Move from the old app</b>
+    <p class="note">In the old app (home Wi-Fi) tap „📦 Copy data", then tap the field here → <b>Paste</b>.</p>
+    <textarea rows="2" placeholder="Tap here → Paste" onpaste="setTimeout(() => importMoved(this.value), 50)" style="width:100%;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea>
+    <button class="btn sm" style="margin-top:8px" onclick="S.migrated=true;save();render()">Start fresh</button></div>`;
   return '';
 }

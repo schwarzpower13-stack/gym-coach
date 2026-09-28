@@ -4,7 +4,7 @@ const DEF = { program: 'pro', start: null, profile: {}, logs: {}, health: {}, we
 let S;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { S = { ...DEF }; }
 S.recovery = S.recovery || {};
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('⚠️ შენახვა ვერ მოხერხდა'); } };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('⚠️ Couldn’t save'); } };
 
 // ============ DATES ============
 const pad = n => String(n).padStart(2, '0');
@@ -12,9 +12,9 @@ const dkey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${
 const fromKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const dow = (d = new Date()) => (d.getDay() + 6) % 7; // Mon=0
-const DOW = ['ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი', 'კვირა'];
-const DOW_S = ['ორშ', 'სამ', 'ოთხ', 'ხუთ', 'პარ', 'შაბ', 'კვი'];
-const MON = ['იანვ', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'];
+const DOW = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DOW_S = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const TODAY = dkey();
 const monday = (d = new Date()) => addDays(new Date(d.getFullYear(), d.getMonth(), d.getDate()), -dow(d));
 if (!S.start) { S.start = dkey(monday()); save(); }
@@ -43,8 +43,8 @@ function dayPlan(i) {
 }
 
 // muscle groups for weekly volume
-const GROUPS = [['მკერდ', 'მკერდი'], ['დელტა', 'მხრები'], ['მხრ', 'მხრები'], ['ტრიცეფს', 'ტრიცეფსი'], ['ზურგ', 'ზურგი'], ['ბიცეფს', 'ბიცეფსი'], ['ბრაქი', 'ბიცეფსი'], ['ოთხთავა', 'ოთხთავა'], ['უკანა ბარძაყ', 'უკანა ბარძაყი'], ['დუნდულ', 'დუნდულო'], ['წვივ', 'წვივი'], ['მუცელ', 'კორი'], ['კორ', 'კორი'], ['ირიბ', 'კორი']];
-const group = id => (GROUPS.find(([k]) => EX[id].m.includes(k)) || [0, 'სხვა'])[1];
+const GROUPS = [['Chest', 'Chest'], ['delt', 'Shoulders'], ['Shoulder', 'Shoulders'], ['Tricep', 'Triceps'], ['Back', 'Back'], ['Bicep', 'Biceps'], ['Brachialis', 'Biceps'], ['Quad', 'Quads'], ['Hamstring', 'Hamstrings'], ['Glute', 'Glutes'], ['Calv', 'Calves'], ['Abs', 'Core'], ['Core', 'Core'], ['Oblique', 'Core']];
+const group = id => (GROUPS.find(([k]) => EX[id].m.includes(k)) || [0, 'Other'])[1];
 
 // last completed sets for exercise before today
 function prevSets(id) {
@@ -59,10 +59,10 @@ function prevSets(id) {
 }
 function suggestion(ex) {
   const p = prevSets(ex.id); const rg = range(ex.reps);
-  if (!p) return 'პირველი ჯერი — აირჩიე წონა, რომლითაც ბოლო 2 რეპი "ბრძოლაა" (RIR 1-2).';
+  if (!p) return 'First time — pick a weight where the last 2 reps are "a fight" (RIR 1-2).';
   const w = Math.max(...p.sets.map(s => +s.w || 0));
-  if (rg && w > 0 && p.sets.every(s => +s.r >= rg[1])) return `🔥 ყველა სეტში ${rg[1]}+ გააკეთე — დღეს სცადე ${w + 2.5} კგ`;
-  if (w > 0) return `წინა ჯერი: ${p.sets.map(s => `${s.w}×${s.r}`).join(', ')} — დღეს +1 რეპი მაინც`;
+  if (rg && w > 0 && p.sets.every(s => +s.r >= rg[1])) return `🔥 You hit ${rg[1]}+ in every set — today try ${w + 2.5} kg`;
+  if (w > 0) return `Last time: ${p.sets.map(s => `${s.w}×${s.r}`).join(', ')} — Today +1 at least +1 rep`;
   return '';
 }
 
@@ -81,14 +81,14 @@ function numLoose(str, thousandsDot) {
 // sleep: "7 hr 24 min", "7:24:00", "26640" (sec), "444" (min), "7.4"
 function hours(str) {
   const s = String(str).toLowerCase();
-  const h = s.match(/(\d+(?:[.,]\d+)?)\s*(h|hr|hrs|hour|hours|სთ|ч)/), mi = s.match(/(\d+)\s*(m|min|mins|minutes|წთ|мин)\b/);
+  const h = s.match(/(\d+(?:[.,]\d+)?)\s*(h|hr|hrs|hour|hours|h|ч)/), mi = s.match(/(\d+)\s*(m|min|mins|minutes|min|мин)\b/);
   if (h || mi) return (h ? numLoose(h[1]) : 0) + (mi ? +mi[1] / 60 : 0);
   const c = s.match(/(\d+):(\d{2})(?::(\d{2}))?/); if (c) return +c[1] + +c[2] / 60;
   let n = numLoose(s); if (!isFinite(n)) return undefined;
   if (n > 1000) n /= 3600; else if (n > 24) n /= 60;
   return n;
 }
-const HKEYS = { dist: /^(dist|walk|მანძ)/, flights: /^(flight|floor|სართ)/, steps: /^(steps?|ნაბიჯ)/, rhr: /^(rhr|resting)/, hrv: /^hrv/, hr: /^(hr|heart)/, sleep: /^(sleep|ძილ)/, kcal: /^(kcal|active|energy)/, w: /^(w|weight|წონა|body)/, swim: /^(swim|ცურვ)/ };
+const HKEYS = { dist: /^(dist|walk|dist)/, flights: /^(flight|floor|flights)/, steps: /^(steps?|steps)/, rhr: /^(rhr|resting)/, hrv: /^hrv/, hr: /^(hr|heart)/, sleep: /^(sleep|sleep)/, kcal: /^(kcal|active|energy)/, w: /^(w|weight|weight|body)/, swim: /^(swim|swim)/ };
 function parseHealth(txt) {
   const out = {};
   String(txt).replace(/&/g, '\n').split(/\n|;/).forEach(line => {
@@ -119,14 +119,14 @@ function importHealth() {
   const txt = q.get('d') ?? [...q.entries()].map(([k, v]) => k + '=' + v).join('\n');
   const n = applyHealth(parseHealth(txt), q.get('date') || TODAY);
   history.replaceState(null, '', location.pathname);
-  setTimeout(() => toast(n ? `❤️ Apple Health სინქრონიზებულია (${n} მაჩვენებელი)` : '⚠️ მონაცემები მოვიდა, მაგრამ ვერ წავიკითხე — ჯანმრთ. → ჩასმა'), 300);
+  setTimeout(() => toast(n ? `❤️ Apple Health synced (${n} metrics)` : '⚠️ Data arrived but couldn’t be read — Health. → Paste'), 300);
 }
 function pasteHealth(txt) {
   const n = applyHealth(parseHealth(txt));
-  if (n) { render(); toast(`❤️ ჩაიწერა: ${n} მაჩვენებელი`); } else toast('⚠️ ამ ტექსტში მონაცემები ვერ ვიპოვე');
+  if (n) { render(); toast(`❤️ Saved: ${n} metrics`); } else toast('⚠️ No data found in this text');
 }
 async function pasteFromClipboard() {
-  try { pasteHealth(await navigator.clipboard.readText()); } catch { toast('ჩასვი ხელით ქვემოთ ველში'); $('#hpaste')?.focus(); }
+  try { pasteHealth(await navigator.clipboard.readText()); } catch { toast('Paste it manually into the field below'); $('#hpaste')?.focus(); }
 }
 function baseline(field, days = 7) {
   const vals = [];
@@ -136,14 +136,14 @@ function baseline(field, days = 7) {
 function readiness() {
   const h = S.health[TODAY]; if (!h || (!h.sleep && !h.rhr && !h.hrv)) return null;
   let score = 0, wsum = 0; const why = [];
-  if (h.sleep) { const s = Math.min(1, h.sleep / 8); score += s * 40; wsum += 40; if (h.sleep < 6.5) why.push(`ძილი მხოლოდ ${h.sleep} სთ`); }
+  if (h.sleep) { const s = Math.min(1, h.sleep / 8); score += s * 40; wsum += 40; if (h.sleep < 6.5) why.push(`Only slept ${h.sleep} h`); }
   const brhr = baseline('rhr');
-  if (h.rhr && brhr) { const d = h.rhr - brhr; const s = Math.max(0, Math.min(1, 1 - d / 10)); score += s * 40; wsum += 40; if (d >= 4) why.push(`მოსვენების პულსი +${Math.round(d)} ნორმაზე`); }
+  if (h.rhr && brhr) { const d = h.rhr - brhr; const s = Math.max(0, Math.min(1, 1 - d / 10)); score += s * 40; wsum += 40; if (d >= 4) why.push(`resting HR +${Math.round(d)} above normal`); }
   const bhrv = baseline('hrv');
-  if (h.hrv && bhrv) { const r = h.hrv / bhrv; const s = Math.max(0, Math.min(1, (r - 0.7) / 0.4)); score += s * 20; wsum += 20; if (r < 0.85) why.push('HRV ნორმაზე დაბალია'); }
+  if (h.hrv && bhrv) { const r = h.hrv / bhrv; const s = Math.max(0, Math.min(1, (r - 0.7) / 0.4)); score += s * 20; wsum += 20; if (r < 0.85) why.push('HRV below normal'); }
   if (!wsum) return null;
   const sc = Math.round(score / wsum * 100);
-  const lvl = sc >= 75 ? ['მზად ხარ რეკორდისთვის 💪', 'good', 'ივარჯიშე გეგმით, სცადე პროგრესი.'] : sc >= 55 ? ['ნორმალური დღე', 'warn', 'ივარჯიშე გეგმით, RIR 2 — ჩავარდნამდე ნუ მიხვალ.'] : ['აღდგენის დღე', 'bad', 'თითო ვარჯიშზე −1 სეტი, RIR 3. ან მხოლოდ სეირნობა + McGill Big 3.'];
+  const lvl = sc >= 75 ? ['Ready for a PR 💪', 'good', 'Train as planned and push for progress..'] : sc >= 55 ? ['Normal day', 'warn', 'Train as planned, RIR 2 — don’t go to failure.'] : ['Recovery day', 'bad', 'per exercise −1 set, RIR 3. or just a walk + McGill Big 3.'];
   return { sc, t: lvl[0], cls: lvl[1], tip: lvl[2], why };
 }
 
@@ -175,9 +175,9 @@ function weeklyRate() {
 function kcalAdvice() {
   const r = weeklyRate(); const g = S.profile.goal || 'bulk'; if (!r) return null;
   const lo = g === 'bulk' ? 0.2 : g === 'cut' ? -1.0 : -0.15, hi = g === 'bulk' ? 0.6 : g === 'cut' ? -0.4 : 0.15;
-  if (r.pct < lo) return { r, d: +150, t: `წონა ${r.pct.toFixed(2)}%/კვირა — მიზანზე ნელა. +150 კკალ.` };
-  if (r.pct > hi) return { r, d: -150, t: `წონა ${r.pct.toFixed(2)}%/კვირა — ზედმეტად სწრაფად (ცხიმი). −150 კკალ.` };
-  return { r, d: 0, t: `წონა ${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(2)}%/კვირა — იდეალურ ზონაში ხარ ✅` };
+  if (r.pct < lo) return { r, d: +150, t: `weight ${r.pct.toFixed(2)}%/week — slower than the goal. +150 kcal.` };
+  if (r.pct > hi) return { r, d: -150, t: `weight ${r.pct.toFixed(2)}%/week — too fast (fat). −150 kcal.` };
+  return { r, d: 0, t: `weight ${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(2)}%/week — you’re right in the ideal zone ✅` };
 }
 function mealDay(i) {
   const ids = MEAL_DAYS[i];
@@ -189,7 +189,7 @@ function mealDay(i) {
 
 // ============ CHARTS ============
 function lineChart(pts, { color = 'var(--acc)', h = 120, fmtY = v => v } = {}) {
-  if (pts.length < 2) return '<div class="sub" style="padding:20px 0;text-align:center">ჯერ არასაკმარისი მონაცემი</div>';
+  if (pts.length < 2) return '<div class="sub" style="padding:20px 0;text-align:center">Not enough data yet</div>';
   const W = 320, P = 6, ys = pts.map(p => p[1]); let mn = Math.min(...ys), mx = Math.max(...ys); if (mn === mx) { mn -= 1; mx += 1; }
   const x = i => P + i * (W - 2 * P) / (pts.length - 1), y = v => h - 18 - (v - mn) / (mx - mn) * (h - 30);
   const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join('');
@@ -226,30 +226,30 @@ function vToday() {
   const total = plan.ex.reduce((a, e) => a + e.sets, 0);
   const md = mealDay(i); const eaten = S.eaten[TODAY] || []; const nextMeal = md.ids.findIndex((_, k) => !eaten[k]);
   const water = S.water[TODAY] || 0;
-  const hr = d.getHours(), greet = hr < 12 ? 'დილა მშვიდობისა' : hr < 18 ? 'გამარჯობა' : 'საღამო მშვიდობისა';
+  const hr = d.getHours(), greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Hello' : 'Good evening';
   return `
   <div class="sub">${DOW[i]}, ${d.getDate()} ${MON[d.getMonth()]}</div>
   <h1>${greet} 👊</h1>
   <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
     <span class="pill acc">${esc(program().name)}</span>
-    <span class="pill">ციკლი ${c.cycle} · კვირა ${c.week}/6</span>
-    ${c.deload ? '<span class="pill warn">🔄 Deload კვირა — სეტები ნახევრად</span>' : ''}
+    <span class="pill">Cycle ${c.cycle} · Week ${c.week}/6</span>
+    ${c.deload ? '<span class="pill warn">🔄 Deload week — sets halved</span>' : ''}
   </div>
   ${moveCard()}
   ${weekStrip()}
 
-  ${rd ? `<div class="card row" style="gap:14px">${ring(rd.sc / 100, rd.sc, `var(--${rd.cls})`)}<div><div class="sub">მზადყოფნა დღეს</div><h3>${rd.t}</h3><div class="note">${rd.tip}</div>${rd.why.length ? `<div class="note" style="color:var(--warn)">${rd.why.join(' · ')}</div>` : ''}</div></div>` : ''}
+  ${rd ? `<div class="card row" style="gap:14px">${ring(rd.sc / 100, rd.sc, `var(--${rd.cls})`)}<div><div class="sub">Readiness today</div><h3>${rd.t}</h3><div class="note">${rd.tip}</div>${rd.why.length ? `<div class="note" style="color:var(--warn)">${rd.why.join(' · ')}</div>` : ''}</div></div>` : ''}
 
   ${(() => { const ws = workoutStatus(TODAY), why = stOf(TODAY).workout; return `<div class="card ${ws === 'miss' ? 'miss' : ws === 'done' ? 'ok' : ''}">
-    <div class="row between"><div><div class="sub">დღევანდელი ვარჯიში</div><h3 style="font-size:20px">${esc(plan.t)} <span class="sub" style="font-size:14px">· ${esc(plan.f)}</span></h3></div>${ws === 'miss' ? '<span class="pill bad">✕ გამოტოვებული</span>' : ws === 'done' ? '<span class="pill good">✓ შესრულდა</span>' : ''}</div>
-    ${plan.rest ? `<p class="note">დასვენების დღე: 8-10 ათასი ნაბიჯი, ცურვა/საუნა, McGill Big 3 (6 წთ). კუნთი დღეს იზრდება.</p>` : ws === 'miss' ? `
-    <p class="note" style="color:var(--bad)">მიზეზი: ${reasonLabel(why) || '—'} · ჩაითვალა სტატისტიკაში</p>
+    <div class="row between"><div><div class="sub">Today’s workout</div><h3 style="font-size:20px">${esc(plan.t)} <span class="sub" style="font-size:14px">· ${esc(plan.f)}</span></h3></div>${ws === 'miss' ? '<span class="pill bad">✕ Missed</span>' : ws === 'done' ? '<span class="pill good">✓ Done</span>' : ''}</div>
+    ${plan.rest ? `<p class="note">Rest day: 8-10 k steps, swim/sauna, McGill Big 3 (6 min). muscle grows today.</p>` : ws === 'miss' ? `
+    <p class="note" style="color:var(--bad)">Reason: ${reasonLabel(why) || '—'} · counted in your stats</p>
     <p class="note">${REASON_TIP[why] || REASON_TIP.other}</p>
-    <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" onclick="unmarkMiss('workout')">↩︎ გაუქმება</button><button class="btn sm acc" style="flex:1" onclick="unmarkMiss('workout');SEL_DAY=${i};startWorkout();go('train')">მაინც ვივარჯიშებ ▶</button></div>` : `
+    <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" onclick="unmarkMiss('workout')">↩︎ Undo</button><button class="btn sm acc" style="flex:1" onclick="unmarkMiss('workout');SEL_DAY=${i};startWorkout();go('train')">I’ll train anyway ▶</button></div>` : `
     <div class="bar" style="margin:12px 0 6px"><i style="width:${total ? Math.min(100, doneSets / total * 100) : 0}%"></i></div>
-    <div class="sub">${doneSets}/${total} სეტი · ${plan.ex.length} ვარჯიში · ~${Math.round(total * 2.6 + 8)} წთ</div>
-    <button class="btn acc block" style="margin-top:12px" onclick="SEL_DAY=${i};startWorkout();go('train')">${S.workout?.date === TODAY || doneSets ? 'გაგრძელება ▶' : 'ვარჯიშის დაწყება ▶'}</button>
-    ${ws !== 'done' ? `<button class="btn sm ghost-bad" style="margin-top:8px;width:100%" onclick="openMiss('workout')">✕ დღეს ვერ ვივარჯიშე</button>${missChips('workout')}` : ''}`}
+    <div class="sub">${doneSets}/${total} sets · ${plan.ex.length} exercises · ~${Math.round(total * 2.6 + 8)} min</div>
+    <button class="btn acc block" style="margin-top:12px" onclick="SEL_DAY=${i};startWorkout();go('train')">${S.workout?.date === TODAY || doneSets ? 'Continue ▶' : 'Start workout ▶'}</button>
+    ${ws !== 'done' ? `<button class="btn sm ghost-bad" style="margin-top:8px;width:100%" onclick="openMiss('workout')">✕ I couldn’t train today</button>${missChips('workout')}` : ''}`}
   </div>`; })()}
 
   ${ritualsCard()}
@@ -257,33 +257,33 @@ function vToday() {
   ${coachCard(3)}
 
   <div class="grid3">
-    <div class="stat"><span>ნაბიჯი</span><b>${h.steps ? fmt(h.steps) : '—'}</b></div>
-    <div class="stat"><span>პულსი (მოსვ.)</span><b>${h.rhr ? Math.round(h.rhr) : '—'}</b></div>
-    <div class="stat"><span>ძილი</span><b>${h.sleep ? h.sleep + 'სთ' : '—'}</b></div>
+    <div class="stat"><span>Steps</span><b>${h.steps ? fmt(h.steps) : '—'}</b></div>
+    <div class="stat"><span>Resting HR</span><b>${h.rhr ? Math.round(h.rhr) : '—'}</b></div>
+    <div class="stat"><span>Sleep</span><b>${h.sleep ? h.sleep + 'h' : '—'}</b></div>
   </div>
-  ${!S.health[TODAY]?.t ? `<div class="card"><div class="row between"><b>❤️ Apple Health</b><button class="btn sm" onclick="go('health')">როგორ?</button></div><div class="note">გაუშვი Shortcut „Coach", მერე აქ: შეეხე → <b>Paste</b></div><textarea id="tpaste" rows="2" placeholder="შეეხე აქ → Paste (ჩასმა)" onpaste="setTimeout(() => pasteHealth(this.value), 50)" style="width:100%;margin-top:8px;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea></div>` : ''}
+  ${!S.health[TODAY]?.t ? `<div class="card"><div class="row between"><b>❤️ Apple Health</b><button class="btn sm" onclick="go('health')">How?</button></div><div class="note">Run Shortcut „Coach", then here: tap → <b>Paste</b></div><textarea id="tpaste" rows="2" placeholder="Tap here → Paste (Paste)" onpaste="setTimeout(() => pasteHealth(this.value), 50)" style="width:100%;margin-top:8px;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea></div>` : ''}
 
   ${recoveryCard()}
 
   <div class="card">
-    <div class="row between"><div class="sub">კვება დღეს</div><span class="sub">${eaten.filter(x => x === true).length}/5 კვება${eaten.some(x => x === 'skip' || x === 'off') ? ` · <span style="color:var(--bad)">${eaten.filter(x => x === 'skip' || x === 'off').length} გამოტ.</span>` : ''}</span></div>
-    ${t ? '' : `<p class="note">შეავსე პროფილი, რომ კალორია და პორციები შენზე მოვარგო.</p>`}
-    ${nextMeal >= 0 ? `<div class="row" style="margin-top:10px" onclick="go('food')"><img src="img/meals/${MEALS[md.ids[nextMeal]].img}" style="width:64px;height:64px;border-radius:12px;object-fit:cover" alt=""><div><div class="slot" style="font-size:11px;color:var(--acc);font-weight:700">${SLOT[nextMeal].toUpperCase()}</div><b>${esc(MEALS[md.ids[nextMeal]].n)}</b><div class="sub">${fmt(MEALS[md.ids[nextMeal]].k * md.f)} კკალ · ${Math.round(MEALS[md.ids[nextMeal]].p * md.f)}გ ცილა</div></div></div>` : '<p class="note">✅ ყველა კვება შესრულებულია</p>'}
+    <div class="row between"><div class="sub">Food today</div><span class="sub">${eaten.filter(x => x === true).length}/5 meals${eaten.some(x => x === 'skip' || x === 'off') ? ` · <span style="color:var(--bad)">${eaten.filter(x => x === 'skip' || x === 'off').length} missed.</span>` : ''}</span></div>
+    ${t ? '' : `<p class="note">Fill in your profile so I can tailor calories and portions to you.</p>`}
+    ${nextMeal >= 0 ? `<div class="row" style="margin-top:10px" onclick="go('food')"><img src="img/meals/${MEALS[md.ids[nextMeal]].img}" style="width:64px;height:64px;border-radius:12px;object-fit:cover" alt=""><div><div class="slot" style="font-size:11px;color:var(--acc);font-weight:700">${SLOT[nextMeal].toUpperCase()}</div><b>${esc(MEALS[md.ids[nextMeal]].n)}</b><div class="sub">${fmt(MEALS[md.ids[nextMeal]].k * md.f)} kcal · ${Math.round(MEALS[md.ids[nextMeal]].p * md.f)}g protein</div></div></div>` : '<p class="note">✅ All meals done</p>'}
     <div class="row between" style="margin-top:12px">
-      <button class="btn sm" onclick="toggleCreatine()">${S.creatine[TODAY] ? '✅' : new Date().getHours() >= 21 ? '🟥' : '⬜'} კრეატინი 5გ</button>
-      <button class="btn sm" onclick="addWater(1)">💧 ${water}/${t?.water || 12} ჭიქა +</button>
+      <button class="btn sm" onclick="toggleCreatine()">${S.creatine[TODAY] ? '✅' : new Date().getHours() >= 21 ? '🟥' : '⬜'} Creatine 5g</button>
+      <button class="btn sm" onclick="addWater(1)">💧 ${water}/${t?.water || 12} glasses +</button>
     </div>
   </div>`;
 }
 // ---------- DAILY RITUALS (spirit + learning) ----------
 function ritualsCard() {
   const items = [
-    ['breath', '🌬️', 'DMT სუნთქვა', 'spirit', 'დილით'],
-    ['static', '🧍', `სტატიკა ${staticTarget()} წთ`, 'spirit', ''],
-    ['lang', '🗣️', `სიტყვები · ${queueOf('pt').due.length + queueOf('pt').newLeft + queueOf('en').due.length + queueOf('en').newLeft} დარჩა`, 'learn', ''],
-    ['journal', '📖', 'მადლიერება + მანიფესტაცია', 'spirit', 'ძილის წინ'],
+    ['breath', '🌬️', 'DMT Breathing', 'spirit', 'morning'],
+    ['static', '🧍', `Static pose ${staticTarget()} min`, 'spirit', ''],
+    ['lang', '🗣️', `Words · ${queueOf('pt').due.length + queueOf('pt').newLeft + queueOf('en').due.length + queueOf('en').newLeft} left`, 'learn', ''],
+    ['journal', '📖', 'Gratitude + manifestation', 'spirit', 'before bed'],
   ];
-  return `<div class="card"><b>✨ დღის რიტუალები</b>${items.map(([c, ic, t, tab, when]) => { const s = statusOf(c, TODAY);
+  return `<div class="card"><b>✨ Daily rituals</b>${items.map(([c, ic, t, tab, when]) => { const s = statusOf(c, TODAY);
     return `<button class="ritrow st-row-${s}" onclick="go('${tab}')"><i class="st-${s}">${s === 'done' ? '✓' : s === 'miss' ? '✕' : s === 'part' ? '½' : ''}</i><span>${ic} ${t}</span><small>${when}</small><em>›</em></button>`; }).join('')}</div>`;
 }
 // ---------- SWIM & SAUNA ----------
@@ -294,38 +294,38 @@ function recWeek(offset = 0) {
 }
 function recoveryCard() {
   const R = S.recovery[TODAY] || {}, w = recWeek();
-  return `<div class="card"><div class="row between"><div class="sub">ცურვა & საუნა · ეს კვირა</div><span class="sub">მიზანი: 🏊 ${recPlan().swim.length} · 🧖 ${recPlan().sauna.length}</span></div>
+  return `<div class="card"><div class="row between"><div class="sub">Swim & sauna · this week</div><span class="sub">Goal: 🏊 ${recPlan().swim.length} · 🧖 ${recPlan().sauna.length}</span></div>
     <div class="grid2" style="margin-top:8px">
-      <div class="stat"><span>🏊 ცურვა</span><b>${w.swims}×</b><span>${w.swimMin} წთ${w.swimM ? ' · ' + fmt(w.swimM) + 'მ' : ''}</span></div>
-      <div class="stat"><span>🧖 საუნა</span><b>${w.sauna}×</b><span>${w.saunaMin} წთ</span></div>
+      <div class="stat"><span>🏊 Swim</span><b>${w.swims}×</b><span>${w.swimMin} min${w.swimM ? ' · ' + fmt(w.swimM) + 'm' : ''}</span></div>
+      <div class="stat"><span>🧖 Sauna</span><b>${w.sauna}×</b><span>${w.saunaMin} min</span></div>
     </div>
-    ${['swim', 'sauna'].map(kind => { const st = recStatus(kind, TODAY), done = R[kind], ic = kind === 'swim' ? '🏊 ცურვა' : '🧖 საუნა';
-      const lbl = done ? '✅ ' + ic + ' ' + (done.min ? done.min + 'წთ' : '') + (done.m ? ' ' + done.m + 'მ' : '') : ic + (st === 'pend' ? ' — დღეს გეგმაშია' : ' დღეს');
-      return `<div class="recrow rec-${st}"><button class="btn sm ${done ? '' : st === 'miss' ? '' : 'acc'}" style="flex:1" onclick="${kind === 'swim' ? 'logSwim()' : 'logSauna()'}">${st === 'miss' ? '✕ ' + ic + ' გამოტოვებული' : lbl}</button>
-        ${st === 'miss' ? `<button class="btn sm" onclick="unmarkMiss('${kind}')">↩︎</button>` : !done ? `<button class="btn sm ghost-bad" onclick="markMiss('${kind}')" aria-label="ვერ მოვახერხე">✕</button>` : ''}</div>`; }).join('')}
+    ${['swim', 'sauna'].map(kind => { const st = recStatus(kind, TODAY), done = R[kind], ic = kind === 'swim' ? '🏊 Swim' : '🧖 Sauna';
+      const lbl = done ? '✅ ' + ic + ' ' + (done.min ? done.min + 'min' : '') + (done.m ? ' ' + done.m + 'm' : '') : ic + (st === 'pend' ? ' — planned today' : ' today');
+      return `<div class="recrow rec-${st}"><button class="btn sm ${done ? '' : st === 'miss' ? '' : 'acc'}" style="flex:1" onclick="${kind === 'swim' ? 'logSwim()' : 'logSauna()'}">${st === 'miss' ? '✕ ' + ic + ' Missed' : lbl}</button>
+        ${st === 'miss' ? `<button class="btn sm" onclick="unmarkMiss('${kind}')">↩︎</button>` : !done ? `<button class="btn sm ghost-bad" onclick="markMiss('${kind}')" aria-label="Couldn’t make it">✕</button>` : ''}</div>`; }).join('')}
   </div>`;
 }
 function logSwim() {
   const R = S.recovery[TODAY] = S.recovery[TODAY] || {};
-  const min = prompt('ცურვა — რამდენი წუთი? (0 = წაშლა)', R.swim?.min || 30); if (min === null) return;
+  const min = prompt('Swim — how many minutes? (0 = delete)', R.swim?.min || 30); if (min === null) return;
   if (+min === 0) { delete R.swim; save(); return render(); }
-  const m = prompt('მანძილი მეტრებში (არასავალდებულო):', R.swim?.m || '');
-  R.swim = { min: +min || 0, m: +m || R.swim?.m || 0 }; delete R.swimMiss; save(); render(); toast('🏊 ცურვა ჩაიწერა');
+  const m = prompt('Distance in meters (optional):', R.swim?.m || '');
+  R.swim = { min: +min || 0, m: +m || R.swim?.m || 0 }; delete R.swimMiss; save(); render(); toast('🏊 Swim logged');
 }
 function logSauna() {
   const R = S.recovery[TODAY] = S.recovery[TODAY] || {};
-  const min = prompt('საუნა — სულ რამდენი წუთი? (0 = წაშლა)', R.sauna?.min || 30); if (min === null) return;
+  const min = prompt('sauna — total minutes? (0 = delete)', R.sauna?.min || 30); if (min === null) return;
   if (+min === 0) { delete R.sauna; save(); return render(); }
-  R.sauna = { min: +min || 0 }; delete R.saunaMiss; save(); render(); toast('🧖 საუნა ჩაიწერა · დალიე 0.5-1 ლ წყალი');
+  R.sauna = { min: +min || 0 }; delete R.saunaMiss; save(); render(); toast('🧖 Sauna logged · drink 0.5-1 L water');
 }
 function swimPlan() {
-  return `<h2>🏊 ${SWIM_PLAN.t}</h2><div class="card"><div class="sub">~${SWIM_PLAN.min} წთ · ${SWIM_PLAN.m}მ</div>
+  return `<h2>🏊 ${SWIM_PLAN.t}</h2><div class="card"><div class="sub">~${SWIM_PLAN.min} min · ${SWIM_PLAN.m}m</div>
     <ol class="steps" style="margin-top:8px">${SWIM_PLAN.sets.map(([d, t]) => `<li><b>${d}</b> — ${esc(t)}</li>`).join('')}</ol>
     ${SWIM_PLAN.rules.map(r => `<div class="spine">🦴 ${esc(r)}</div>`).join('')}
     ${SWIM_PLAN.v.map(([id, t]) => `<div class="note" style="margin-top:10px">▶ ${esc(t)}</div>${video(id)}`).join('')}</div>`;
 }
 function saunaProtocol() {
-  return `<h2>🧖 საუნის პროტოკოლი</h2><div class="card">${SAUNA_PROTOCOL.steps.map(([e, t, p]) => `<div class="why"><div class="e">${e}</div><div><b>${t}</b><p>${p}</p></div></div>`).join('')}<p class="note">🔬 ${SAUNA_PROTOCOL.why}</p></div>`;
+  return `<h2>🧖 Sauna protocol</h2><div class="card">${SAUNA_PROTOCOL.steps.map(([e, t, p]) => `<div class="why"><div class="e">${e}</div><div><b>${t}</b><p>${p}</p></div></div>`).join('')}<p class="note">🔬 ${SAUNA_PROTOCOL.why}</p></div>`;
 }
 function toggleCreatine() { S.creatine[TODAY] = !S.creatine[TODAY]; save(); render(); }
 function addWater(n) { S.water[TODAY] = Math.max(0, (S.water[TODAY] || 0) + n); save(); render(); }
@@ -336,29 +336,29 @@ function vTrain() {
   const w = S.workout?.date === TODAY;
   const L = S.logs[TODAY];
   return `
-  <div class="wbar ${w && isToday ? 'on' : ''} row between"><div><div class="sub">ვარჯიში მიმდინარეობს</div><b id="wTime" style="font-size:20px;font-variant-numeric:tabular-nums">0:00</b></div><button class="btn sm acc" onclick="finishWorkout()">დასრულება ✓</button></div>
-  <h1>ვარჯიში</h1>
+  <div class="wbar ${w && isToday ? 'on' : ''} row between"><div><div class="sub">Workout in progress</div><b id="wTime" style="font-size:20px;font-variant-numeric:tabular-nums">0:00</b></div><button class="btn sm acc" onclick="finishWorkout()">Finish ✓</button></div>
+  <h1>Training</h1>
   <div class="seg" style="margin:10px 0">${Object.entries(PROGRAMS).map(([k, p]) => `<button class="${S.program === k ? 'on' : ''}" onclick="S.program='${k}';save();render()">${esc(p.name)}</button>`).join('')}</div>
   <div class="sub" style="margin-bottom:6px">${esc(program().sub)}</div>
   <div class="days">${program().days.map((d, k) => `<button class="${k === SEL_DAY ? 'on' : ''} ${k === dow() ? 'today' : ''}" onclick="SEL_DAY=${k};render()"><small>${DOW_S[k]}</small><b style="font-size:13px">${esc(d.t)}</b></button>`).join('')}</div>
-  ${c.deload && !plan.rest ? '<div class="spine">🔄 Deload კვირა: სეტები განახევრებულია, წონა იგივე, RIR 3. შემდეგ კვირას ახალი ციკლი.</div>' : ''}
+  ${c.deload && !plan.rest ? '<div class="spine">🔄 Deload week: sets halved, same weight, RIR 3. next week a new cycle starts.</div>' : ''}
   <h2 style="margin-top:8px">${DOW[SEL_DAY]} — ${esc(plan.t)} <span class="sub">· ${esc(plan.f)}</span></h2>
   ${plan.rest ? restDay() : `
-    ${S.program === 'pro' ? `<div class="sub" style="margin:6px 0">🔥 გახურება (~8 წთ): 5 წთ ველო/ბილიკი + McGill Big 3</div>${WARMUP.map((e, k) => exCard({ id: e[0], sets: e[1], reps: e[2], note: e[3], v: EX[e[0]].v, name: EX[e[0]].n }, 'w' + k, false)).join('')}<div class="sub" style="margin:14px 0 6px">💪 სამუშაო სეტები</div>` : ''}
+    ${S.program === 'pro' ? `<div class="sub" style="margin:6px 0">🔥 Warm-up (~8 min): 5 min bike/treadmill + McGill Big 3</div>${WARMUP.map((e, k) => exCard({ id: e[0], sets: e[1], reps: e[2], note: e[3], v: EX[e[0]].v, name: EX[e[0]].n }, 'w' + k, false)).join('')}<div class="sub" style="margin:14px 0 6px">💪 Working sets</div>` : ''}
     ${plan.ex.map((e, k) => exCard(e, k, true, L)).join('')}
-    ${isToday && !w ? `<button class="btn acc block" style="margin-top:12px" onclick="startWorkout()">ვარჯიშის დაწყება ▶</button>` : ''}
-    ${!isToday ? `<p class="note" style="text-align:center">სეტების ჩაწერა ხდება დღევანდელ თარიღზე.</p>` : ''}
-    <div class="card"><b>ვარჯიშის შემდეგ 🧖</b><p class="note">საუნა 2 რაუნდი × 10-15 წთ ან 20 წთ მსუბუქი ცურვა — აღდგენა და გული. საუნა ვარჯიშამდე არა.</p><div class="row" style="gap:8px"><button class="btn sm" onclick="logSauna()">🧖 საუნა +</button><button class="btn sm" onclick="logSwim()">🏊 ცურვა +</button></div></div>
+    ${isToday && !w ? `<button class="btn acc block" style="margin-top:12px" onclick="startWorkout()">Start workout ▶</button>` : ''}
+    ${!isToday ? `<p class="note" style="text-align:center">Sets are logged to today’s date.</p>` : ''}
+    <div class="card"><b>After the workout 🧖</b><p class="note">sauna 2 rounds × 10-15 min or 20 min easy swim — recovery and heart health. No sauna before training.</p><div class="row" style="gap:8px"><button class="btn sm" onclick="logSauna()">🧖 Sauna +</button><button class="btn sm" onclick="logSwim()">🏊 Swim +</button></div></div>
     ${S.program === 'pro' ? proWhy() : ''}
   `}`;
 }
 function restDay() {
-  return `<div class="card"><h3>აქტიური აღდგენა 🏊 🧖</h3><ul class="cues" style="margin-top:8px"><li>ცურვა 30 წთ (გეგმა ქვემოთ)</li><li>საუნა 2-3 რაუნდი</li><li>8-10 ათასი ნაბიჯი</li><li>McGill Big 3 — 6 წთ</li><li>ძილი 8+ სთ</li></ul></div>
+  return `<div class="card"><h3>Active recovery 🏊 🧖</h3><ul class="cues" style="margin-top:8px"><li>Swim 30 min (plan below)</li><li>sauna 2-3 rounds</li><li>8-10 k steps</li><li>McGill Big 3 — 6 min</li><li>Sleep 8+ h</li></ul></div>
   ${recoveryCard()}${swimPlan()}${saunaProtocol()}
   <h2>McGill Big 3</h2>${WARMUP.map((e, k) => exCard({ id: e[0], sets: e[1], reps: e[2], note: e[3], v: EX[e[0]].v, name: EX[e[0]].n }, 'r' + k, false)).join('')}`;
 }
 function proWhy() {
-  return `<h2>რატომ PRO გეგმა?</h2><div class="card">${PRO_WHY.map(([e, t, p]) => `<div class="why"><div class="e">${e}</div><div><b>${t}</b><p>${p}</p></div></div>`).join('')}</div>`;
+  return `<h2>Why PRO Plan?</h2><div class="card">${PRO_WHY.map(([e, t, p]) => `<div class="why"><div class="e">${e}</div><div><b>${t}</b><p>${p}</p></div></div>`).join('')}</div>`;
 }
 function exCard(e, k, loggable, L) {
   const X = EX[e.id], key = `${k}:${e.id}`, open = OPEN.has(key);
@@ -367,7 +367,7 @@ function exCard(e, k, loggable, L) {
   const p = loggable ? prevSets(e.id) : null;
   const rows = loggable ? Array.from({ length: e.sets }, (_, j) => {
     const s = sets[j] || {}; const pv = p?.sets[j];
-    return `<tr class="${s.ok ? 'ok' : ''}"><td>${j + 1}</td><td class="prev">${pv ? `${pv.w}×${pv.r}` : '—'}</td><td><input inputmode="decimal" placeholder="${pv?.w || 'კგ'}" value="${s.w ?? ''}" onchange="setVal('${key}',${j},'w',this.value)"></td><td><input inputmode="numeric" placeholder="${pv?.r || range(e.reps)?.[1] || ''}" value="${s.r ?? ''}" onchange="setVal('${key}',${j},'r',this.value)"></td><td><button class="ck" aria-label="სეტი შესრულებულია" onclick="checkSet('${key}',${j},${range(e.reps)?.[0] <= 8 ? 150 : 90})"></button></td></tr>`;
+    return `<tr class="${s.ok ? 'ok' : ''}"><td>${j + 1}</td><td class="prev">${pv ? `${pv.w}×${pv.r}` : '—'}</td><td><input inputmode="decimal" placeholder="${pv?.w || 'kg'}" value="${s.w ?? ''}" onchange="setVal('${key}',${j},'w',this.value)"></td><td><input inputmode="numeric" placeholder="${pv?.r || range(e.reps)?.[1] || ''}" value="${s.r ?? ''}" onchange="setVal('${key}',${j},'r',this.value)"></td><td><button class="ck" aria-label="Set done" onclick="checkSet('${key}',${j},${range(e.reps)?.[0] <= 8 ? 150 : 90})"></button></td></tr>`;
   }).join('') : '';
   return `<div class="ex ${open ? 'open' : ''} ${done ? 'done' : ''}" id="ex-${key}">
     <button class="ex-h" onclick="toggleEx('${key}')"><div class="ex-n">${done ? '✓' : typeof k === 'number' ? k + 1 : '•'}</div><div class="ex-t"><b>${esc(e.name)}</b><span>${esc(X.m)}${X.s ? ' · ⚠️' : ''}</span></div><div class="ex-sr">${e.sets}×${esc(e.reps)}</div></button>
@@ -376,11 +376,11 @@ function exCard(e, k, loggable, L) {
       ${e.note ? `<div class="note">📝 ${esc(e.note)}</div>` : ''}
       <ul class="cues">${X.c.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
       ${X.s ? `<div class="spine">🦴 ${esc(X.s)}</div>` : ''}
-      ${loggable ? `<div class="sug">${esc(suggestion(e))}</div><table class="sets"><tr><th>#</th><th>წინა</th><th>კგ</th><th>რეპი</th><th></th></tr>${rows}</table>` : ''}
+      ${loggable ? `<div class="sug">${esc(suggestion(e))}</div><table class="sets"><tr><th>#</th><th>Prev</th><th>kg</th><th>reps</th><th></th></tr>${rows}</table>` : ''}
     </div></div>`;
 }
 function video(id, vert) {
-  return `<div class="vid ${vert ? 'vert' : ''}" data-v="${id}"><img loading="lazy" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt=""><button class="play" aria-label="ვიდეოს ჩართვა" onclick="playVid(this.parentNode)"><i></i></button></div>`;
+  return `<div class="vid ${vert ? 'vert' : ''}" data-v="${id}"><img loading="lazy" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt=""><button class="play" aria-label="Play video" onclick="playVid(this.parentNode)"><i></i></button></div>`;
 }
 function playVid(el) {
   const id = el.dataset.v;
@@ -413,7 +413,7 @@ function checkSet(key, j, rest) {
   row.classList.toggle('ok', s.ok);
   const card = document.getElementById('ex-' + key), done = L.sets[key].filter(x => x?.ok).length >= e.sets;
   card.classList.toggle('done', done); card.querySelector('.ex-n').textContent = done ? '✓' : +k + 1;
-  if (s.ok) { startRest(rest); const p = prevSets(e.id); const best = p ? Math.max(...p.sets.map(x => e1rm(+x.w, +x.r))) : 0; if (p && e1rm(s.w, s.r) > best * 1.001) toast(`🏆 ახალი რეკორდი! e1RM ${Math.round(e1rm(s.w, s.r))} კგ`); }
+  if (s.ok) { startRest(rest); const p = prevSets(e.id); const best = p ? Math.max(...p.sets.map(x => e1rm(+x.w, +x.r))) : 0; if (p && e1rm(s.w, s.r) > best * 1.001) toast(`🏆 New PR! e1RM ${Math.round(e1rm(s.w, s.r))} kg`); }
 }
 
 // workout timer + wake lock
@@ -434,14 +434,14 @@ function finishWorkout() {
   const sets = Object.values(L.sets).flat().filter(s => s.ok);
   const vol = sets.reduce((a, s) => a + (+s.w || 0) * (+s.r || 0), 0);
   S.workout = null; save(); wakeLock?.release?.(); wakeLock = null; stopRest();
-  toast(`✅ ${L.min} წთ · ${sets.length} სეტი · ${fmt(vol)} კგ მოცულობა`);
+  toast(`✅ ${L.min} min · ${sets.length} sets · ${fmt(vol)} kg volume`);
   go('today');
 }
 // rest timer
 let restEnd = 0, restInt;
 function startRest(sec) {
   restEnd = Date.now() + sec * 1000; $('#rest').classList.add('on'); clearInterval(restInt);
-  const upd = () => { const s = Math.ceil((restEnd - Date.now()) / 1000); if (s <= 0) { beep(); stopRest(); toast('⏱️ შემდეგი სეტი!'); return; } $('#restT').textContent = `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+  const upd = () => { const s = Math.ceil((restEnd - Date.now()) / 1000); if (s <= 0) { beep(); stopRest(); toast('⏱️ Next set!'); return; } $('#restT').textContent = `${Math.floor(s / 60)}:${pad(s % 60)}`; };
   upd(); restInt = setInterval(upd, 250);
 }
 function stopRest() { clearInterval(restInt); $('#rest').classList.remove('on'); }
@@ -461,65 +461,65 @@ function vFood() {
   const got = md.ids.reduce((a, id, k) => { if (eaten[k] !== true) return a; const m = MEALS[id]; return { k: a.k + m.k * md.f, p: a.p + m.p * md.f }; }, { k: 0, p: 0 });
   const adv = kcalAdvice();
   return `
-  <h1>კვება</h1>
+  <h1>Food</h1>
   ${MEAL_SEL === dow() ? timeline(TODAY) : ''}
-  <div class="sub">ISSN-ის და თანამედროვე სპორტული კვების მეცნიერების პრინციპებზე აგებული</div>
+  <div class="sub">Built on ISSN guidelines and modern sports-nutrition science</div>
   ${t ? `
   <div class="card">
-    <div class="row between"><div><div class="sub">დღიური მიზანი (${p.goal === 'cut' ? 'ცხიმის წვა' : p.goal === 'keep' ? 'შენარჩუნება' : 'Lean bulk'})</div><b style="font-size:30px">${fmt(t.kcal)} <span class="sub">კკალ</span></b></div><button class="btn sm" onclick="editProfile()">✏️ პროფილი</button></div>
+    <div class="row between"><div><div class="sub">Daily goal (${p.goal === 'cut' ? 'Fat loss' : p.goal === 'keep' ? 'Maintenance' : 'Lean bulk'})</div><b style="font-size:30px">${fmt(t.kcal)} <span class="sub">kcal</span></b></div><button class="btn sm" onclick="editProfile()">✏️ Profile</button></div>
     <div class="grid3" style="margin-top:10px">
-      <div class="stat"><span>ცილა</span><b>${t.protein}გ</b></div>
-      <div class="stat"><span>ნახშირწყ.</span><b>${t.carbs}გ</b></div>
-      <div class="stat"><span>ცხიმი</span><b>${t.fat}გ</b></div>
+      <div class="stat"><span>Protein</span><b>${t.protein}g</b></div>
+      <div class="stat"><span>Carbs.</span><b>${t.carbs}g</b></div>
+      <div class="stat"><span>fat</span><b>${t.fat}g</b></div>
     </div>
-    <div class="note">BMR ${fmt(t.bmr)} · TDEE ${fmt(t.tdee)}${S.kcalAdj ? ` · კორექცია ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj}` : ''}</div>
-    ${dateKey ? `<div style="margin-top:10px"><div class="row between sub"><span>შეჭამე: ${fmt(got.k)} კკალ · ${Math.round(got.p)}გ ცილა</span><span>${Math.round(got.k / t.kcal * 100)}%</span></div><div class="bar"><i style="width:${Math.min(100, got.k / t.kcal * 100)}%"></i></div></div>` : ''}
-    ${adv ? `<div class="spine" style="margin-top:10px;color:${adv.d ? 'var(--warn)' : 'var(--good)'};background:var(--card2)">📊 ${adv.t}${adv.d ? ` <button class="btn sm acc" style="margin-left:6px" onclick="S.kcalAdj=(S.kcalAdj||0)+${adv.d};save();render()">გამოიყენე</button>` : ''}</div>` : `<div class="note">⚖️ აწონე თავი დილით, 2 კვირის შემდეგ აპი თავად დაარეგულირებს კალორიას.</div>`}
+    <div class="note">BMR ${fmt(t.bmr)} · TDEE ${fmt(t.tdee)}${S.kcalAdj ? ` · adjustment ${S.kcalAdj > 0 ? '+' : ''}${S.kcalAdj}` : ''}</div>
+    ${dateKey ? `<div style="margin-top:10px"><div class="row between sub"><span>Eaten: ${fmt(got.k)} kcal · ${Math.round(got.p)}g protein</span><span>${Math.round(got.k / t.kcal * 100)}%</span></div><div class="bar"><i style="width:${Math.min(100, got.k / t.kcal * 100)}%"></i></div></div>` : ''}
+    ${adv ? `<div class="spine" style="margin-top:10px;color:${adv.d ? 'var(--warn)' : 'var(--good)'};background:var(--card2)">📊 ${adv.t}${adv.d ? ` <button class="btn sm acc" style="margin-left:6px" onclick="S.kcalAdj=(S.kcalAdj||0)+${adv.d};save();render()">Apply</button>` : ''}</div>` : `<div class="note">⚖️ Weigh yourself in the morning, 2 weeks the app will adjust your calories automatically.</div>`}
   </div>
-  <div class="card"><div class="row between"><div class="sub">💧 წყალი · 250 მლ ჭიქა</div><b>${S.water[TODAY] || 0}/${t.water} ჭიქა</b></div><div class="water">${Array.from({ length: Math.min(t.water, 16) }, (_, k) => `<button class="${k < (S.water[TODAY] || 0) ? 'f' : ''}" onclick="S.water[TODAY]=${k + 1 === (S.water[TODAY] || 0) ? k : k + 1};save();render()" aria-label="ჭიქა ${k + 1}"></button>`).join('')}</div></div>
+  <div class="card"><div class="row between"><div class="sub">💧 Water · 250 ml glass</div><b>${S.water[TODAY] || 0}/${t.water} glasses</b></div><div class="water">${Array.from({ length: Math.min(t.water, 16) }, (_, k) => `<button class="${k < (S.water[TODAY] || 0) ? 'f' : ''}" onclick="S.water[TODAY]=${k + 1 === (S.water[TODAY] || 0) ? k : k + 1};save();render()" aria-label="glasses ${k + 1}"></button>`).join('')}</div></div>
   ` : profileForm()}
 
-  <h2>მენიუ</h2>
-  <div class="days">${MEAL_DAYS.map((_, k) => `<button class="${k === MEAL_SEL ? 'on' : ''} ${k === dow() ? 'today' : ''}" onclick="MEAL_SEL=${k};render()"><small>${DOW_S[k]}</small><b style="font-size:13px">დღე ${k + 1}</b></button>`).join('')}</div>
-  ${t ? `<div class="sub">პორციები მორგებულია შენს მიზანზე: ×${md.f.toFixed(2)} (${fmt(md.sum * md.f)} კკალ)</div>` : ''}
+  <h2>Menu</h2>
+  <div class="days">${MEAL_DAYS.map((_, k) => `<button class="${k === MEAL_SEL ? 'on' : ''} ${k === dow() ? 'today' : ''}" onclick="MEAL_SEL=${k};render()"><small>${DOW_S[k]}</small><b style="font-size:13px">Day ${k + 1}</b></button>`).join('')}</div>
+  ${t ? `<div class="sub">Portions are scaled to your goal: ×${md.f.toFixed(2)} (${fmt(md.sum * md.f)} kcal)</div>` : ''}
   ${md.ids.map((id, k) => mealCard(id, k, md.f, dateKey ? eaten[k] : undefined, !!dateKey)).join('')}
 
-  <h2>პროფესიონალური წესები</h2>
+  <h2>Professional rules</h2>
   <div class="card">${NUTRI_RULES.map(([e, tt, pp]) => `<div class="why"><div class="e">${e}</div><div><b>${tt}</b><p>${pp}</p></div></div>`).join('')}</div>
-  <p class="note">ფოტოები: TheMealDB და Wikimedia Commons (CC BY / CC BY-SA ავტორები). კალორიები მიახლოებითია. ოსტეოქონდროზის გამო ახალ პროგრამამდე ექიმთან/ფიზიოთერაპევტთან კონსულტაცია სასურველია.</p>`;
+  <p class="note">Photos: TheMealDB and Wikimedia Commons (CC BY / CC BY-SA authors). Calories are approximate. Because of osteochondrosis, check with a doctor/physiotherapist before starting a new program.</p>`;
 }
 function mealCard(id, k, f, state, canEat) {
   const isEaten = state === true, bad = state === 'skip' || state === 'off';
   const m = MEALS[id];
-  const g = v => v == null ? '' : `${Math.round(v * f / 5) * 5 || Math.round(v * f)}გ `;
+  const g = v => v == null ? '' : `${Math.round(v * f / 5) * 5 || Math.round(v * f)}g `;
   return `<div class="meal ${isEaten ? 'eaten' : bad ? 'missed' : ''}"><img loading="lazy" src="img/meals/${m.img}" alt="${esc(m.n)}"><div class="mb">
-    <div class="slot">🕗 ${mealTimes()[k]} · ${SLOT[k]} · ${m.t} წთ</div><h3 style="margin-top:2px">${esc(m.n)}</h3>
-    <div class="macros"><span><b>${fmt(m.k * f)}</b> კკალ</span><span>ც <b>${Math.round(m.p * f)}</b>გ</span><span>ნ <b>${Math.round(m.c * f)}</b>გ</span><span>ცხ <b>${Math.round(m.f * f)}</b>გ</span></div>
-    <details><summary>ინგრედიენტები და მომზადება</summary><ul>${m.i.map(([gr, n]) => `<li>${g(gr)}${esc(n)}</li>`).join('')}</ul><ol>${m.s.map(s => `<li>${esc(s)}</li>`).join('')}</ol></details>
-    ${canEat ? (state ? `<div class="row eat" style="gap:8px"><span class="pill ${isEaten ? 'good' : 'bad'}">${isEaten ? '✓ შევჭამე' : state === 'skip' ? '✕ გამოვტოვე' : '⚠ სხვა ვჭამე'}</span><button class="btn sm" onclick="eat(${k}, null)">↩︎ გაუქმება</button></div>`
-      : `<div class="row eat" style="gap:6px"><button class="btn sm acc" style="flex:1" onclick="eat(${k}, true)">✓ შევჭამე</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'skip')">✕ გამოვტოვე</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'off')">⚠ სხვა</button></div>`) : ''}
+    <div class="slot">🕗 ${mealTimes()[k]} · ${SLOT[k]} · ${m.t} min</div><h3 style="margin-top:2px">${esc(m.n)}</h3>
+    <div class="macros"><span><b>${fmt(m.k * f)}</b> kcal</span><span>P <b>${Math.round(m.p * f)}</b>g</span><span>C <b>${Math.round(m.c * f)}</b>g</span><span>F <b>${Math.round(m.f * f)}</b>g</span></div>
+    <details><summary>Ingredients & method</summary><ul>${m.i.map(([gr, n]) => `<li>${g(gr)}${esc(n)}</li>`).join('')}</ul><ol>${m.s.map(s => `<li>${esc(s)}</li>`).join('')}</ol></details>
+    ${canEat ? (state ? `<div class="row eat" style="gap:8px"><span class="pill ${isEaten ? 'good' : 'bad'}">${isEaten ? '✓ Ate it' : state === 'skip' ? '✕ Skipped' : '⚠ Ate something else'}</span><button class="btn sm" onclick="eat(${k}, null)">↩︎ Undo</button></div>`
+      : `<div class="row eat" style="gap:6px"><button class="btn sm acc" style="flex:1" onclick="eat(${k}, true)">✓ Ate it</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'skip')">✕ Skipped</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'off')">⚠ Other</button></div>`) : ''}
   </div></div>`;
 }
-function eat(k, v) { const e = S.eaten[TODAY] = S.eaten[TODAY] || []; e[k] = v; save(); render(); if (v === 'skip' || v === 'off') toast('❌ დაფიქსირდა — სტატისტიკაში ჩაითვლება'); }
+function eat(k, v) { const e = S.eaten[TODAY] = S.eaten[TODAY] || []; e[k] = v; save(); render(); if (v === 'skip' || v === 'off') toast('❌ Logged — it counts in your stats'); }
 function profileForm() {
   const p = S.profile;
-  return `<div class="card"><h3>შენი პროფილი</h3><p class="note">კალორიის, ცილის და პორციების ზუსტად გამოსათვლელად.</p>
+  return `<div class="card"><h3>Your profile</h3><p class="note">To calculate calories, protein and portions precisely.</p>
   <div class="grid2">
-    <label class="f">წონა (კგ)<input id="pw" inputmode="decimal" value="${p.w || ''}"></label>
-    <label class="f">სიმაღლე (სმ)<input id="ph" inputmode="numeric" value="${p.h || ''}"></label>
-    <label class="f">ასაკი<input id="pa" inputmode="numeric" value="${p.age || ''}"></label>
-    <label class="f">სქესი<select id="ps"><option value="m" ${p.sex !== 'f' ? 'selected' : ''}>მამრობითი</option><option value="f" ${p.sex === 'f' ? 'selected' : ''}>მდედრობითი</option></select></label>
-    <label class="f">აქტივობა<select id="pact"><option value="1.55" ${p.act == 1.55 ? 'selected' : ''}>6 ვარჯიში, მჯდომარე სამსახური</option><option value="1.7" ${!p.act || p.act == 1.7 ? 'selected' : ''}>6 ვარჯიში + 8-10ათ. ნაბიჯი</option><option value="1.85" ${p.act == 1.85 ? 'selected' : ''}>ძალიან აქტიური / ფიზიკური შრომა</option></select></label>
-    <label class="f">მიზანი<select id="pg"><option value="bulk" ${!p.goal || p.goal === 'bulk' ? 'selected' : ''}>კუნთის მასა (lean bulk)</option><option value="keep" ${p.goal === 'keep' ? 'selected' : ''}>რეკომპოზიცია</option><option value="cut" ${p.goal === 'cut' ? 'selected' : ''}>ცხიმის წვა</option></select></label>
+    <label class="f">Weight (kg)<input id="pw" inputmode="decimal" value="${p.w || ''}"></label>
+    <label class="f">Height (cm)<input id="ph" inputmode="numeric" value="${p.h || ''}"></label>
+    <label class="f">Age<input id="pa" inputmode="numeric" value="${p.age || ''}"></label>
+    <label class="f">Sex<select id="ps"><option value="m" ${p.sex !== 'f' ? 'selected' : ''}>Male</option><option value="f" ${p.sex === 'f' ? 'selected' : ''}>Female</option></select></label>
+    <label class="f">Activity<select id="pact"><option value="1.55" ${p.act == 1.55 ? 'selected' : ''}>6 workouts, desk job</option><option value="1.7" ${!p.act || p.act == 1.7 ? 'selected' : ''}>6 workouts + 8-10k steps</option><option value="1.85" ${p.act == 1.85 ? 'selected' : ''}>Very active / physical job</option></select></label>
+    <label class="f">Goal<select id="pg"><option value="bulk" ${!p.goal || p.goal === 'bulk' ? 'selected' : ''}>Muscle gain (lean bulk)</option><option value="keep" ${p.goal === 'keep' ? 'selected' : ''}>Recomposition</option><option value="cut" ${p.goal === 'cut' ? 'selected' : ''}>Fat loss</option></select></label>
   </div>
-  <button class="btn acc block" style="margin-top:12px" onclick="saveProfile()">შენახვა</button></div>`;
+  <button class="btn acc block" style="margin-top:12px" onclick="saveProfile()">Save</button></div>`;
 }
-function editProfile() { TAB = 'food'; app.innerHTML = '<h1>პროფილი</h1>' + profileForm(); scrollTo(0, 0); }
+function editProfile() { TAB = 'food'; app.innerHTML = '<h1>Profile</h1>' + profileForm(); scrollTo(0, 0); }
 function saveProfile() {
   const v = id => +$('#' + id).value.replace(',', '.');
   S.profile = { w: v('pw'), h: v('ph'), age: v('pa'), sex: $('#ps').value, act: +$('#pact').value, goal: $('#pg').value };
-  if (!S.profile.w || !S.profile.h || !S.profile.age) return toast('შეავსე წონა, სიმაღლე და ასაკი');
-  S.weights[TODAY] = S.weights[TODAY] || S.profile.w; save(); TAB = 'food'; render(); toast('✅ შენახულია');
+  if (!S.profile.w || !S.profile.h || !S.profile.age) return toast('Fill in weight, height and age');
+  S.weights[TODAY] = S.weights[TODAY] || S.profile.w; save(); TAB = 'food'; render(); toast('✅ Saved');
 }
 
 // ---------- HEALTH ----------
@@ -531,58 +531,58 @@ function vHealth() {
   const sleep = days(14).map(k => [k, S.health[k]?.sleep || 0]);
   const url = location.origin + location.pathname;
   return `
-  <h1>ჯანმრთელობა</h1>
-  <div class="sub">${last ? `ბოლო სინქრონი: ${last === TODAY ? 'დღეს' : last}${S.health[last].t ? ' ' + new Date(S.health[last].t).toTimeString().slice(0, 5) : ''}` : 'Apple Health ჯერ არ არის დაკავშირებული'}</div>
+  <h1>Health</h1>
+  <div class="sub">${last ? `Last sync: ${last === TODAY ? 'Today' : last}${S.health[last].t ? ' ' + new Date(S.health[last].t).toTimeString().slice(0, 5) : ''}` : 'Apple Health not connected yet'}</div>
   <div class="grid2" style="margin-top:12px">
-    <div class="stat"><span>👟 ნაბიჯი</span><b>${h.steps ? fmt(h.steps) : '—'}</b></div>
-    <div class="stat"><span>🚶 მანძილი</span><b>${h.dist ? h.dist + ' კმ' : '—'}</b></div>
-    <div class="stat"><span>🪜 სართული</span><b>${h.flights ?? '—'}</b></div>
-    <div class="stat"><span>🔥 აქტიური კკალ</span><b>${h.kcal ? fmt(h.kcal) : '—'}</b></div>
-    <div class="stat"><span>❤️ მოსვენების პულსი</span><b>${h.rhr ? Math.round(h.rhr) : '—'}</b></div>
+    <div class="stat"><span>👟 Steps</span><b>${h.steps ? fmt(h.steps) : '—'}</b></div>
+    <div class="stat"><span>🚶 Distance</span><b>${h.dist ? h.dist + ' km' : '—'}</b></div>
+    <div class="stat"><span>🪜 Flights</span><b>${h.flights ?? '—'}</b></div>
+    <div class="stat"><span>🔥 Active kcal</span><b>${h.kcal ? fmt(h.kcal) : '—'}</b></div>
+    <div class="stat"><span>❤️ Resting HR</span><b>${h.rhr ? Math.round(h.rhr) : '—'}</b></div>
     <div class="stat"><span>📈 HRV</span><b>${h.hrv ? Math.round(h.hrv) + 'ms' : '—'}</b></div>
-    <div class="stat"><span>😴 ძილი</span><b>${h.sleep ? h.sleep + ' სთ' : '—'}</b></div>
-    <div class="stat"><span>⚖️ წონა</span><b>${h.w || S.weights[TODAY] || '—'}</b></div>
+    <div class="stat"><span>😴 Sleep</span><b>${h.sleep ? h.sleep + ' h' : '—'}</b></div>
+    <div class="stat"><span>⚖️ Weight</span><b>${h.w || S.weights[TODAY] || '—'}</b></div>
   </div>
-  <div class="card"><div class="row between"><b>ნაბიჯი — 14 დღე</b><span class="sub">მიზანი 8 000</span></div>${barChart(steps, { goal: 8000 })}</div>
-  <div class="card"><b>ძილი — 14 დღე</b>${barChart(sleep, { goal: 7.5, color: 'var(--blue)' })}</div>
-  <div class="card"><b>მოსვენების პულსი — 30 დღე</b><div class="note">ქვემოთ წასვლა = გული და ფიტნესი უმჯობესდება</div>${lineChart(rhr, { color: 'var(--bad)' })}</div>
+  <div class="card"><div class="row between"><b>Steps — 14 days</b><span class="sub">Goal 8 000</span></div>${barChart(steps, { goal: 8000 })}</div>
+  <div class="card"><b>Sleep — 14 days</b>${barChart(sleep, { goal: 7.5, color: 'var(--blue)' })}</div>
+  <div class="card"><b>Resting HR — 30 days</b><div class="note">Going down = heart and fitness are improving</div>${lineChart(rhr, { color: 'var(--bad)' })}</div>
 
-  <h2>⚡ Apple Health-თან დაკავშირება</h2>
+  <h2>⚡ Connect Apple Health</h2>
   <div class="card">
-    <p class="note" style="margin-top:0">Apple ვებ-აპს Health-ზე პირდაპირ წვდომას არ აძლევს. ხიდად ვიყენებთ iPhone-ის უფასო <b>Shortcuts</b> აპს. ერთხელ ააწყობ (~5 წთ), მერე ერთი შეხებით მუშაობს.</p>
+    <p class="note" style="margin-top:0">Apple doesn’t let web apps read Health directly, so we use the free <b>Shortcuts</b> app as a bridge. Set it up once (~5 min) — after that it’s one tap.</p>
     <ol class="steps">
-      <li>გახსენი <b>Shortcuts</b> → ზემოთ <b>+</b> → სახელი: <b>Coach</b>. ქვემოთ <b>Search Actions</b> ველში ეძებ ყოველ მოქმედებას სახელით.</li>
-      <li><b>Find Health Samples</b> → შეეხე „Type"-ს → <b>Steps</b>. <b>Add Filter</b> → <b>Start Date</b> · <b>is today</b>.<br>შემდეგ დაამატე <b>Calculate Statistics</b> → <b>Sum</b>.</li>
-      <li>კიდევ <b>Find Health Samples</b> → <b>Resting Heart Rate</b>. Sort by <b>Start Date</b>, Order <b>Latest First</b>, Limit ჩართე → <b>1</b>.</li>
-      <li>კიდევ <b>Find Health Samples</b> → <b>Sleep Analysis</b>. ფილტრები: <b>Start Date is in the last 1 days</b>, <b>Value is not In Bed</b>, <b>Value is not Awake</b>.<br>შემდეგ <b>Get Details of Health Sample</b> → <b>Duration</b>, შემდეგ <b>Calculate Statistics</b> → <b>Sum</b>.</li>
-      <li>კიდევ <b>Find Health Samples</b> → <b>Weight</b>, Latest First, Limit <b>1</b>. (წონას Health-ში თუ არ წერ — გამოტოვე)</li>
-      <li>დაამატე <b>Text</b>. ჩაწერე ეს ხაზები, ორწერტილის შემდეგ კი ჩასვი შესაბამისი შედეგი (კლავიატურის ზემოთ ზოლიდან ან <b>Select Variable</b>):
-        <pre style="background:var(--card2);border-radius:10px;padding:10px;margin:8px 0;font-size:13px;white-space:pre-wrap">steps: [Statistics — ნაბიჯი]
-rhr: [Health Samples — პულსი]
-sleep: [Statistics — ძილი]
-w: [Health Samples — წონა]</pre></li>
-      <li>ბოლოს დაამატე <b>Copy to Clipboard</b>. მზადაა — გაუშვი ▶. პირველად Health-ის ნებართვას მოგთხოვს → <b>Turn On All → Allow</b>.</li>
-      <li>✨ Shortcut-ზე ხანგრძლივად დააჭირე → <b>Share → Add to Home Screen</b> — ეკრანზე გექნება „Coach" ღილაკი Health-ისთვის.</li>
-      <li><b>ყოველდღე:</b> დააჭირე „Coach" Shortcut-ს → გახსენი ეს აპი → „დღეს" გვერდზე ველს შეეხე → <b>Paste</b>. მონაცემები მაშინვე ჩაიწერება.</li>
+      <li>Open <b>Shortcuts</b> → <b>+</b> (top right). Use the <b>Search Actions</b> field at the bottom to find each action by name.</li>
+      <li>Add <b>Find Health Samples</b> → tap “Type” → <b>Steps</b>. <b>Add Filter</b> → <b>Start Date</b> · <b>is today</b>.<br>Then add <b>Calculate Statistics</b> → <b>Sum</b>.</li>
+      <li>Add another <b>Find Health Samples</b> → <b>Resting Heart Rate</b>. Sort by <b>Start Date</b>, Order <b>Latest First</b>, turn on Limit → <b>1</b>.</li>
+      <li>Another <b>Find Health Samples</b> → <b>Sleep Analysis</b>. Filters: <b>Start Date is in the last 1 days</b>, <b>Value is not In Bed</b>, <b>Value is not Awake</b>.<br>Then <b>Get Details of Health Sample</b> → <b>Duration</b>, then <b>Calculate Statistics</b> → <b>Sum</b>.</li>
+      <li>Another <b>Find Health Samples</b> → <b>Weight</b>, Latest First, Limit <b>1</b>. (Skip this if you don’t log weight in Health.)</li>
+      <li>Add <b>Text</b> and type these lines. After each colon insert the matching result (from the bar above the keyboard or <b>Select Variable</b>):
+        <pre style="background:var(--card2);border-radius:10px;padding:10px;margin:8px 0;font-size:13px;white-space:pre-wrap">steps: [Statistics — steps]
+rhr: [Health Samples — resting HR]
+sleep: [Statistics — sleep]
+w: [Health Samples — weight]</pre></li>
+      <li>Finally add <b>Copy to Clipboard</b>. Run it ▶. The first time, Health asks for permission → <b>Turn On All → Allow</b>.</li>
+      <li>✨ Long-press the shortcut → <b>Share → Add to Home Screen</b> for a one-tap “Coach” button.</li>
+      <li><b>Every day:</b> tap “Coach” → open this app → on the <b>Today</b> page tap the Health field → <b>Paste</b>. Saved instantly.</li>
     </ol>
-    <details class="note"><summary>Safari-ში იყენებ და არა ეკრანის აიქონით?</summary>Copy to Clipboard-ის შემდეგ დაამატე <b>URL Encode</b>, შემდეგ <b>URL</b>: <code>${esc(url)}?d=</code> <button class="btn sm" onclick="copyTpl()">📋</button> + URL Encoded Text, და <b>Open URLs</b> — მაშინ ჩასმაც არ დაგჭირდება. (ეკრანზე დადებულ აპს Safari-სგან ცალკე მეხსიერება აქვს, ამიტომ იქ ჩასმა საჭიროა.)</details>
-    <b style="display:block;margin-top:12px">ჩასმა</b><textarea id="hpaste" rows="2" placeholder="შეეხე აქ → Paste (ჩასმა)" onpaste="setTimeout(() => pasteHealth(this.value), 50)" style="width:100%;margin-top:8px;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea><button class="btn block" style="margin-top:8px" onclick="pasteHealth($('#hpaste').value)">იმპორტი</button>
+    <details class="note"><summary>Using the app in Safari instead of the Home Screen icon?</summary>After Copy to Clipboard add <b>URL Encode</b>, then <b>URL</b>: <code>${esc(url)}?d=</code> <button class="btn sm" onclick="copyTpl()">📋</button> + the URL Encoded Text, then <b>Open URLs</b> — no pasting needed. (The Home Screen app has its own storage, separate from Safari, so there you paste.)</details>
+    <b style="display:block;margin-top:12px">Paste</b><textarea id="hpaste" rows="2" placeholder="Tap here → Paste" onpaste="setTimeout(() => pasteHealth(this.value), 50)" style="width:100%;margin-top:8px;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea><button class="btn block" style="margin-top:8px" onclick="pasteHealth($('#hpaste').value)">Import</button>
   </div>
 
-  <h2>ხელით შეყვანა</h2>
+  <h2>Manual entry</h2>
   <div class="card"><div class="grid2">
-    <label class="f">ნაბიჯი<input id="hs" inputmode="numeric" value="${h.steps || ''}"></label>
-    <label class="f">მოსვ. პულსი<input id="hr" inputmode="numeric" value="${h.rhr || ''}"></label>
-    <label class="f">ძილი (სთ)<input id="hsl" inputmode="decimal" value="${h.sleep || ''}"></label>
-    <label class="f">წონა დილით (კგ)<input id="hw" inputmode="decimal" value="${h.w || S.weights[TODAY] || ''}"></label>
-  </div><button class="btn acc block" style="margin-top:12px" onclick="saveManual()">შენახვა</button></div>`;
+    <label class="f">Steps<input id="hs" inputmode="numeric" value="${h.steps || ''}"></label>
+    <label class="f">Resting HR<input id="hr" inputmode="numeric" value="${h.rhr || ''}"></label>
+    <label class="f">Sleep (h)<input id="hsl" inputmode="decimal" value="${h.sleep || ''}"></label>
+    <label class="f">Morning weight (kg)<input id="hw" inputmode="decimal" value="${h.w || S.weights[TODAY] || ''}"></label>
+  </div><button class="btn acc block" style="margin-top:12px" onclick="saveManual()">Save</button></div>`;
 }
-function copyTpl() { const c = document.querySelector('.steps code').textContent; if (!navigator.clipboard) { toast('მონიშნე და დააკოპირე ხელით'); return; } navigator.clipboard?.writeText(c).then(() => toast('📋 დაკოპირდა'), () => toast('მონიშნე და დააკოპირე ხელით')); }
+function copyTpl() { const c = document.querySelector('.steps code').textContent; if (!navigator.clipboard) { toast('Select and copy it manually'); return; } navigator.clipboard?.writeText(c).then(() => toast('📋 Copied'), () => toast('Select and copy it manually')); }
 function saveManual() {
   const v = id => { const x = parseFloat($('#' + id).value.replace(',', '.')); return isFinite(x) ? x : undefined; };
   const h = S.health[TODAY] = S.health[TODAY] || {};
   [['steps', 'hs'], ['rhr', 'hr'], ['sleep', 'hsl'], ['w', 'hw']].forEach(([k, id]) => { const x = v(id); if (x !== undefined) h[k] = x; });
-  h.t = Date.now(); if (h.w) S.weights[TODAY] = h.w; save(); render(); toast('✅ შენახულია');
+  h.t = Date.now(); if (h.w) S.weights[TODAY] = h.w; save(); render(); toast('✅ Saved');
 }
 
 // ---------- STATS ----------
@@ -603,43 +603,43 @@ function vStats() {
   const ws = weightSeries(60);
   const volWeeks = Array.from({ length: 8 }, (_, i) => { const a = dkey(addDays(monday(), -7 * (7 - i))), b = dkey(addDays(monday(), -7 * (6 - i))); return [a, logs.filter(([k]) => k >= a && k < b).reduce((x, [, L]) => x + Object.values(L.sets).flat().filter(s => s.ok).length, 0)]; });
   return `
-  <h1>პროგრესი</h1>
-  <button class="btn block" style="margin-top:10px" onclick="go('health')">❤️ ჯანმრთელობა და Apple Health →</button>
-  <h2>დისციპლინა · 4 კვირა</h2>
+  <h1>Progress</h1>
+  <button class="btn block" style="margin-top:10px" onclick="go('health')">❤️ Health & Apple Health →</button>
+  <h2>Discipline · 4 weeks</h2>
   ${adherenceTiles()}
-  <div class="card"><b>დღე-დღე</b><div style="margin-top:10px">${heatmap()}</div></div>
+  <div class="card"><b>Day by day</b><div style="margin-top:10px">${heatmap()}</div></div>
   ${coachCard()}
   ${missReasons()}
-  <h2>ძალა და მოცულობა</h2>
+  <h2>Strength & volume</h2>
   <div class="grid3" style="margin-top:12px">
-    <div class="stat"><span>ამ კვირას</span><b>${thisWeek}/6</b></div>
-    <div class="stat"><span>სულ ვარჯიში</span><b>${logs.length}</b></div>
-    <div class="stat"><span>აწეული ტონა</span><b>${(totalVol / 1000).toFixed(1)}</b></div>
+    <div class="stat"><span>This week</span><b>${thisWeek}/6</b></div>
+    <div class="stat"><span>Total workouts</span><b>${logs.length}</b></div>
+    <div class="stat"><span>Tonnes lifted</span><b>${(totalVol / 1000).toFixed(1)}</b></div>
   </div>
-  <div class="card"><div class="row between"><b>კვირის სეტები კუნთზე</b><span class="sub">ოპტიმუმი 10-20</span></div><div class="muscles" style="margin-top:8px">${allG.map(g => { const v = vol[g] || 0; return `<div><span>${g}</span><div class="bar"><i style="width:${Math.min(100, v / 20 * 100)}%;background:${v >= 10 ? 'var(--good)' : 'var(--acc)'}"></i></div><b style="text-align:right">${v}</b></div>`; }).join('')}</div></div>
-  <div class="card"><b>🏊 ცურვა (ჯერ) — 8 კვირა</b>${barChart(Array.from({ length: 8 }, (_, i) => [dkey(addDays(monday(), -7 * (7 - i))), recWeek(7 - i).swims]), { color: 'var(--blue)', goal: 2 })}<b>🧖 საუნა (ჯერ) — 8 კვირა</b>${barChart(Array.from({ length: 8 }, (_, i) => [dkey(addDays(monday(), -7 * (7 - i))), recWeek(7 - i).sauna]), { color: 'var(--warn)', goal: 3 })}</div>
-  <div class="card"><b>სეტები კვირაში — 8 კვირა</b>${barChart(volWeeks, { color: 'var(--blue)' })}</div>
-  <div class="card"><div class="row between"><b>სხეულის წონა</b><button class="btn sm" onclick="logWeight()">+ აწონვა</button></div>${lineChart(ws, { fmtY: v => v + ' კგ' })}${(() => { const r = weeklyRate(); return r ? `<div class="note">7-დღიანი საშუალო: ${r.now.toFixed(1)} კგ (${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(2)}%/კვირა)</div>` : ''; })()}</div>
-  <div class="card"><b>🏆 პირადი რეკორდები (e1RM)</b>${prs.length ? prs.map(([id, p]) => `<div class="row between" style="padding:8px 0;border-top:1px solid var(--line)"><span>${esc(EX[id]?.n || id)}</span><span><b>${Math.round(p.v)}</b> <span class="sub">კგ · ${p.w}×${p.r}</span></span></div>`).join('') : '<p class="note">პირველი ვარჯიშის შემდეგ აქ გამოჩნდება.</p>'}</div>
-  <h2>პარამეტრები</h2>
+  <div class="card"><div class="row between"><b>Weekly sets per muscle</b><span class="sub">optimal 10-20</span></div><div class="muscles" style="margin-top:8px">${allG.map(g => { const v = vol[g] || 0; return `<div><span>${g}</span><div class="bar"><i style="width:${Math.min(100, v / 20 * 100)}%;background:${v >= 10 ? 'var(--good)' : 'var(--acc)'}"></i></div><b style="text-align:right">${v}</b></div>`; }).join('')}</div></div>
+  <div class="card"><b>🏊 Swim (times) — 8 weeks</b>${barChart(Array.from({ length: 8 }, (_, i) => [dkey(addDays(monday(), -7 * (7 - i))), recWeek(7 - i).swims]), { color: 'var(--blue)', goal: 2 })}<b>🧖 Sauna (times) — 8 weeks</b>${barChart(Array.from({ length: 8 }, (_, i) => [dkey(addDays(monday(), -7 * (7 - i))), recWeek(7 - i).sauna]), { color: 'var(--warn)', goal: 3 })}</div>
+  <div class="card"><b>Sets per week — 8 weeks</b>${barChart(volWeeks, { color: 'var(--blue)' })}</div>
+  <div class="card"><div class="row between"><b>Body weight</b><button class="btn sm" onclick="logWeight()">+ Weigh in</button></div>${lineChart(ws, { fmtY: v => v + ' kg' })}${(() => { const r = weeklyRate(); return r ? `<div class="note">7-day average: ${r.now.toFixed(1)} kg (${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(2)}%/week)</div>` : ''; })()}</div>
+  <div class="card"><b>🏆 Personal records (e1RM)</b>${prs.length ? prs.map(([id, p]) => `<div class="row between" style="padding:8px 0;border-top:1px solid var(--line)"><span>${esc(EX[id]?.n || id)}</span><span><b>${Math.round(p.v)}</b> <span class="sub">kg · ${p.w}×${p.r}</span></span></div>`).join('') : '<p class="note">Shows up after your first workout.</p>'}</div>
+  <h2>Settings</h2>
   <div class="card">
-    <label class="f">ციკლის დაწყება (Deload-ის დათვლა)<input type="date" id="cycStart" value="${S.start}" onchange="S.start=this.value;save();render()"></label>
+    <label class="f">Cycle start (Deload count)<input type="date" id="cycStart" value="${S.start}" onchange="S.start=this.value;save();render()"></label>
     ${planPicker()}
-    <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm" onclick="editProfile()">✏️ პროფილი</button></div>
-    <p class="note">მონაცემები ინახება შენს ტელეფონში, აპის შიგნით — არსად იგზავნება.</p>
+    <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm" onclick="editProfile()">✏️ Profile</button></div>
+    <p class="note">Data is stored on your phone, inside the app — it’s never sent anywhere.</p>
   </div>`;
 }
 function missReasons() {
   const R = {}; lastDays(28).forEach(k => { const r = stOf(k).workout; if (r) R[r] = (R[r] || 0) + 1; });
   const e = Object.entries(R).sort((a, b) => b[1] - a[1]); if (!e.length) return '';
   const mx = e[0][1];
-  return `<div class="card"><b>რატომ ვაცდენ ვარჯიშს</b><div class="muscles" style="margin-top:8px">${e.map(([r, n]) => `<div><span>${reasonLabel(r)}</span><div class="bar"><i style="width:${n / mx * 100}%;background:var(--bad)"></i></div><b style="text-align:right">${n}</b></div>`).join('')}</div></div>`;
+  return `<div class="card"><b>Why I miss workouts</b><div class="muscles" style="margin-top:8px">${e.map(([r, n]) => `<div><span>${reasonLabel(r)}</span><div class="bar"><i style="width:${n / mx * 100}%;background:var(--bad)"></i></div><b style="text-align:right">${n}</b></div>`).join('')}</div></div>`;
 }
-function logWeight() { const w = parseFloat((prompt('დღევანდელი წონა (კგ), დილით, საჭმლამდე:', S.weights[TODAY] || S.profile.w || '') || '').replace(',', '.')); if (w > 30) { S.weights[TODAY] = w; if (S.profile.w) S.profile.w = w; save(); render(); } }
+function logWeight() { const w = parseFloat((prompt('Today’s weight (kg), in the morning, before eating:', S.weights[TODAY] || S.profile.w || '') || '').replace(',', '.')); if (w > 30) { S.weights[TODAY] = w; if (S.profile.w) S.profile.w = w; save(); render(); } }
 function exportData() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(S)], { type: 'application/json' })); a.download = `coach-backup-${TODAY}.json`; a.click();
 }
-function importData(f) { if (!f) return; f.text().then(t => { try { S = Object.assign({}, DEF, JSON.parse(t)); save(); render(); toast('✅ აღდგენილია'); } catch { toast('⚠️ ფაილი ვერ წავიკითხე'); } }); }
+function importData(f) { if (!f) return; f.text().then(t => { try { S = Object.assign({}, DEF, JSON.parse(t)); save(); render(); toast('✅ Restored'); } catch { toast('⚠️ Couldn’t read the file'); } }); }
 
 // ============ BOOT ============
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => go(b.dataset.tab));
