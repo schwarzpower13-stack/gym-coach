@@ -1,0 +1,368 @@
+{
+ "bench_press": {
+  "id": "lJ2o89kcnxY",
+  "t": "Incline Medium Grip Bench Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "incline_db_press": {
+  "id": "5CECBjd7HLQ",
+  "t": "Incline Dumbbell Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "machine_chest_press": {
+  "id": "0Wa9CfRXUkA",
+  "t": "Hammer Machine Chest Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "db_lateral_raise": {
+  "id": "OuG1smZTsQQ",
+  "t": "Lateral Raise",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "arnold_press": {
+  "id": "HzIiNhHhhtA",
+  "t": "Seated Dumbbell Shoulder Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "cable_front_raise": {
+  "id": "mPbjfey5yHs",
+  "t": "The Smartest Way to Grow Bigger Front Delts",
+  "ch": "ATHLEAN-X™",
+  "len": "5:36"
+ },
+ "rope_pushdown": {
+  "id": "-xa-6cQaZKY",
+  "t": "Rope Pushdown",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "oh_db_triceps": {
+  "id": "1u18yJELsh0",
+  "t": "Cable Overhead Triceps Extension",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "dips": {
+  "id": "yN6Q1UI_xkE",
+  "t": "How To Do Dips For A Bigger Chest and Shoulders (Fix Mistakes!)",
+  "ch": "Jeff Nippard",
+  "len": "7:11"
+ },
+ "pullup": {
+  "id": "p40iUjf02j0",
+  "t": "Build A STRONG & Muscular Back With Pull Ups (TOP SECRET METHOD)",
+  "ch": "Squat University",
+  "len": "4:50"
+ },
+ "lat_pulldown": {
+  "id": "G9uNaXGTJ4w",
+  "t": "Straight Arm Pulldown",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "chest_supported_row": {
+  "id": "0UBRfiO4zDs",
+  "t": "Chest Supported Row",
+  "ch": "Renaissance Periodization",
+  "len": "0:17"
+ },
+ "one_arm_db_row": {
+  "id": "DMo3HJoawrU",
+  "t": "Single Arm Supported Dumbbell Row",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "face_pull": {
+  "id": "-MODnZdnmAQ",
+  "t": "Cable Rope Facepull",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "barbell_curl": {
+  "id": "JnLFSFurrqQ",
+  "t": "Barbell Curl Normal Grip",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "incline_db_curl": {
+  "id": "aTYlqC_JacQ",
+  "t": "Incline Dumbbell Curl",
+  "ch": "Renaissance Periodization",
+  "len": "0:17"
+ },
+ "hammer_curl": {
+  "id": "XOEL4MgekYE",
+  "t": "Hammer Curl",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "cable_curl": {
+  "id": "opFVuRi_3b8",
+  "t": "Cable EZ Bar Curl",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "hack_squat": {
+  "id": "rYgNArpwE7E",
+  "t": "Hack Squat",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "bulgarian_split_squat": {
+  "id": "jNihW0WDIL4",
+  "t": "Split Squat",
+  "ch": "Renaissance Periodization",
+  "len": "0:09"
+ },
+ "leg_press": {
+  "id": "yZmx_Ac3880",
+  "t": "Leg Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "lying_leg_curl": {
+  "id": "n5WDXD_mpVY",
+  "t": "Lying Leg Curl",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "db_rdl": {
+  "id": "cYKYGwcg0U8",
+  "t": "Dumbbell Stiff Legged Deadlift",
+  "ch": "Renaissance Periodization",
+  "len": "0:18"
+ },
+ "standing_calf_raise": {
+  "id": "N3awlEyTY98",
+  "t": "Calf Machine",
+  "ch": "Renaissance Periodization",
+  "len": "0:12"
+ },
+ "hanging_leg_raise": {
+  "id": "Pr1ieGZ5atk",
+  "t": "Hanging Leg Raise | HOW-TO",
+  "ch": "ATHLEAN-X™",
+  "len": "4:36"
+ },
+ "cable_crunch": {
+  "id": "6GMKPQVERzw",
+  "t": "Rope Crunch",
+  "ch": "Renaissance Periodization",
+  "len": "0:10"
+ },
+ "plank": {
+  "id": "ZyWEXjdAGCQ",
+  "t": "The TRUTH About Planks (IT’S UGLY!)",
+  "ch": "ATHLEAN-X™",
+  "len": "8:54"
+ },
+ "incline_barbell_press": {
+  "id": "lJ2o89kcnxY",
+  "t": "Incline Medium Grip Bench Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "db_flat_press": {
+  "id": "VmB1G1K7v94",
+  "t": "How To: Dumbbell Chest Press",
+  "ch": "ScottHermanFitness",
+  "len": "2:11"
+ },
+ "pec_deck": {
+  "id": "O-OBCfyh9Fw",
+  "t": "Pec Deck Flye",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "shoulder_press": {
+  "id": "HzIiNhHhhtA",
+  "t": "Seated Dumbbell Shoulder Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "upright_row": {
+  "id": "H260SUUyJBM",
+  "t": "Underhand EZ Bar Row",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "skull_crusher": {
+  "id": "jPjhQ2hsAds",
+  "t": "Dumbbell Skullcrusher",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "rope_oh_ext": {
+  "id": "kqidUIf1eJE",
+  "t": "Rope Overhead Triceps Extension",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "pushup": {
+  "id": "5aRHy5ZPjwk",
+  "t": "Maximize Pushups FOR CHEST Growth | Targeting The Muscle",
+  "ch": "Renaissance Periodization",
+  "len": "5:10"
+ },
+ "weighted_pullup": {
+  "id": "HuuyDNGrCI8",
+  "t": "How To: Weighted Pull-Up",
+  "ch": "ScottHermanFitness",
+  "len": "1:52"
+ },
+ "smith_front_squat": {
+  "id": "-eO_VydErV0",
+  "t": "Feet Forward Smith Squat",
+  "ch": "Renaissance Periodization",
+  "len": "0:16"
+ },
+ "walking_lunge": {
+  "id": "Pwsn3HR4L90",
+  "t": "Stop Doing Lunges Like This! (SAVE A FRIEND)",
+  "ch": "ATHLEAN-X™",
+  "len": "8:17"
+ },
+ "leg_extension": {
+  "id": "m0FOpMEgero",
+  "t": "Leg Extension",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "hip_thrust": {
+  "id": "EF7jXP17DPE",
+  "t": "Barbell Hip Thrust",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "ab_wheel": {
+  "id": "A3uK5TPzHq8",
+  "t": "Never Do Ab Wheel Rollouts Like This!",
+  "ch": "ATHLEAN-X™",
+  "len": "5:15"
+ },
+ "side_plank": {
+  "id": "9V7h1RCsI6E",
+  "t": "Get Six-pack Abs At Home With The Best Single Ab Exercise!",
+  "ch": "Renaissance Periodization",
+  "len": "6:36"
+ },
+ "hanging_knee_raise": {
+  "id": "RD_A-Z15ER4",
+  "t": "Hanging Knee Raise",
+  "ch": "Renaissance Periodization",
+  "len": "0:09"
+ },
+ "cable_lateral_raise": {
+  "id": "lq7eLC30b9w",
+  "t": "Leaning Cable Lateral Raise",
+  "ch": "Renaissance Periodization",
+  "len": "0:10"
+ },
+ "cable_fly_low_high": {
+  "id": "e_8HLu59-to",
+  "t": "Cable Underhand Flye",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "reverse_pec_deck": {
+  "id": "O-OBCfyh9Fw",
+  "t": "Pec Deck Flye",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "seated_cable_row": {
+  "id": "UCXxvVItLoM",
+  "t": "Seated Cable Row",
+  "ch": "Renaissance Periodization",
+  "len": "0:18"
+ },
+ "seated_leg_curl": {
+  "id": "Orxowest56U",
+  "t": "Seated Leg Curl",
+  "ch": "Renaissance Periodization",
+  "len": "0:11"
+ },
+ "seated_calf_raise": {
+  "id": "Xa18jxyeSnM",
+  "t": "8 Calf Raise Mistakes and How to Fix Them",
+  "ch": "Renaissance Periodization",
+  "len": "9:25"
+ },
+ "machine_shoulder_press": {
+  "id": "WvLMauqrnK8",
+  "t": "Machine Shoulder Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "single_arm_pushdown": {
+  "id": "6Fzep104f0s",
+  "t": "Cable Triceps Pushdown",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ },
+ "mcgill_curlup": {
+  "id": "8w2nnuis7wc",
+  "t": "Get Ripped Abs With These 5 Simple Training Rules",
+  "ch": "Renaissance Periodization",
+  "len": "8:37"
+ },
+ "bird_dog": {
+  "id": "QABW99qPiNM",
+  "t": "Bird Dog Exercise | Improve Your Core and Balance",
+  "ch": "Muscle & Motion",
+  "len": "1:19"
+ },
+ "pallof_press": {
+  "id": "8w2nnuis7wc",
+  "t": "Get Ripped Abs With These 5 Simple Training Rules",
+  "ch": "Renaissance Periodization",
+  "len": "8:37"
+ },
+ "dead_bug": {
+  "id": "YxmTarC2R-A",
+  "t": "The Worst Exercises People Still Do (And What’s Better)",
+  "ch": "Renaissance Periodization",
+  "len": "19:25"
+ },
+ "close_grip_pulldown": {
+  "id": "GRHLNfmr_oI",
+  "t": "Narrow Grip Pulldown",
+  "ch": "Renaissance Periodization",
+  "len": "0:14"
+ },
+ "preacher_curl": {
+  "id": "sxA__DoLsgo",
+  "t": "EZ Bar Preacher Curl",
+  "ch": "Renaissance Periodization",
+  "len": "0:15"
+ },
+ "concentration_curl": {
+  "id": "Jvj2wV0vOYU",
+  "t": "How To: Dumbbell Concentration Curl",
+  "ch": "ScottHermanFitness",
+  "len": "1:41"
+ },
+ "seated_row_machine": {
+  "id": "5XfV6hvcxCE",
+  "t": "Improve Your Machine Rows For A Bigger Back",
+  "ch": "Renaissance Periodization",
+  "len": "4:11"
+ },
+ "meadows_row": {
+  "id": "kPP_LnIObLU",
+  "t": "Exercise Scientist Critiques The Great John Meadows",
+  "ch": "Renaissance Periodization",
+  "len": "23:32"
+ },
+ "machine_incline_press": {
+  "id": "TrTSvn5-MTk",
+  "t": "Incline Machine Chest Press",
+  "ch": "Renaissance Periodization",
+  "len": "0:13"
+ }
+}
