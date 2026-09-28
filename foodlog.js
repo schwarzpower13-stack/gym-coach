@@ -143,15 +143,15 @@ function reportText(off) {
 async function reportCollage(off) {
   const days = weekDays(off), times = mealTimes(), W = 1080, head = 120, rowH = 210, th = 150, c = document.createElement('canvas');
   c.width = W; c.height = head + rowH * 7 + 20; const g = c.getContext('2d');
-  g.fillStyle = '#0c0d10'; g.fillRect(0, 0, W, c.height);
-  g.fillStyle = '#c6ff3d'; g.font = 'bold 40px -apple-system, sans-serif'; g.fillText('Weekly meals', 30, 60);
+  g.fillStyle = '#0f1519'; g.fillRect(0, 0, W, c.height);
+  g.fillStyle = '#86d5c0'; g.font = 'bold 40px -apple-system, sans-serif'; g.fillText('Weekly meals', 30, 60);
   g.fillStyle = '#9aa0ab'; g.font = '26px -apple-system, sans-serif'; g.fillText(`${days[0]} — ${days[6]} · Plan: ${times.join(' / ')}`, 30, 100);
   for (let r = 0; r < 7; r++) {
     const k = days[r], y = head + r * rowH, P = [...((S.photos || {})[k] || [])].sort((a, b) => toMin(a.time) - toMin(b.time));
-    g.fillStyle = r % 2 ? '#16181d' : '#121419'; g.fillRect(0, y, W, rowH);
+    g.fillStyle = r % 2 ? '#151d22' : '#121a1e'; g.fillRect(0, y, W, rowH);
     g.fillStyle = '#f2f3f5'; g.font = 'bold 30px -apple-system, sans-serif'; g.fillText(DOW_S[r], 24, y + 50);
     g.fillStyle = '#6b717c'; g.font = '22px -apple-system, sans-serif'; g.fillText(k.slice(5), 24, y + 84);
-    const ms = mealStatus(k); g.fillStyle = { done: '#3ddc84', part: '#ffb547', miss: '#ff5d5d' }[ms] || '#2a2e37'; g.fillRect(24, y + 104, 60, 8);
+    const ms = mealStatus(k); g.fillStyle = { done: '#9fd49a', part: '#e6c27f', miss: '#e39a8f' }[ms] || '#2a2e37'; g.fillRect(24, y + 104, 60, 8);
     if (!P.length) { g.fillStyle = '#6b717c'; g.font = '24px -apple-system, sans-serif'; g.fillText('No photos', 130, y + 110); continue; }
     for (let j = 0; j < Math.min(P.length, 6); j++) {
       const x = 120 + j * (th + 8), b = await getPhoto(P[j].id).catch(() => null); if (!b) continue;

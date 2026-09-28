@@ -213,68 +213,13 @@ function render() {
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === TAB));
   const NAV = { health: 'stats', report: 'food' };
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === (NAV[TAB] || TAB)));
-  app.innerHTML = ({ today: vToday, train: vTrain, food: vFood, health: vHealth, stats: vStats, spirit: vSpirit, learn: vLearn, report: vReport })[TAB]();
+  app.innerHTML = ({ today: vToday, train: vTrain, food: () => segmented('food', { today: '📸 Today', menu: '🍽️ Menu', guide: '📘 Guide' }, vFood()), health: vHealth, stats: () => segmented('stats', { overview: '🌿 Discipline', strength: '💪 Strength', settings: '⚙️ Settings' }, vStats()), spirit: vMind, learn: vLearn, report: vReport })[TAB]();
   if (TAB === 'food' || TAB === 'today') hydratePhotos();
   if (TAB === 'train') tickWorkout();
 }
 function go(tab, extra) { TAB = tab; Object.assign(window, extra || {}); render(); scrollTo(0, 0); }
 
 // ---------- TODAY ----------
-function vToday() {
-  const d = new Date(), i = dow(), plan = dayPlan(i), c = cycle(), rd = readiness(), h = S.health[TODAY] || {}, t = targets();
-  const L = S.logs[TODAY]; const doneSets = L ? Object.values(L.sets).flat().filter(s => s.ok).length : 0;
-  const total = plan.ex.reduce((a, e) => a + e.sets, 0);
-  const md = mealDay(i); const eaten = S.eaten[TODAY] || []; const nextMeal = md.ids.findIndex((_, k) => !eaten[k]);
-  const water = S.water[TODAY] || 0;
-  const hr = d.getHours(), greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Hello' : 'Good evening';
-  return `
-  <div class="sub">${DOW[i]}, ${d.getDate()} ${MON[d.getMonth()]}</div>
-  <h1>${greet} 👊</h1>
-  <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
-    <span class="pill acc">${esc(program().name)}</span>
-    <span class="pill">Cycle ${c.cycle} · Week ${c.week}/6</span>
-    ${c.deload ? '<span class="pill warn">🔄 Deload week — sets halved</span>' : ''}
-  </div>
-  ${moveCard()}
-  ${weekStrip()}
-
-  ${rd ? `<div class="card row" style="gap:14px">${ring(rd.sc / 100, rd.sc, `var(--${rd.cls})`)}<div><div class="sub">Readiness today</div><h3>${rd.t}</h3><div class="note">${rd.tip}</div>${rd.why.length ? `<div class="note" style="color:var(--warn)">${rd.why.join(' · ')}</div>` : ''}</div></div>` : ''}
-
-  ${(() => { const ws = workoutStatus(TODAY), why = stOf(TODAY).workout; return `<div class="card ${ws === 'miss' ? 'miss' : ws === 'done' ? 'ok' : ''}">
-    <div class="row between"><div><div class="sub">Today’s workout</div><h3 style="font-size:20px">${esc(plan.t)} <span class="sub" style="font-size:14px">· ${esc(plan.f)}</span></h3></div>${ws === 'miss' ? '<span class="pill bad">✕ Missed</span>' : ws === 'done' ? '<span class="pill good">✓ Done</span>' : ''}</div>
-    ${plan.rest ? `<p class="note">Rest day: 8-10 k steps, swim/sauna, McGill Big 3 (6 min). muscle grows today.</p>` : ws === 'miss' ? `
-    <p class="note" style="color:var(--bad)">Reason: ${reasonLabel(why) || '—'} · counted in your stats</p>
-    <p class="note">${REASON_TIP[why] || REASON_TIP.other}</p>
-    <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" onclick="unmarkMiss('workout')">↩︎ Undo</button><button class="btn sm acc" style="flex:1" onclick="unmarkMiss('workout');SEL_DAY=${i};startWorkout();go('train')">I’ll train anyway ▶</button></div>` : `
-    <div class="bar" style="margin:12px 0 6px"><i style="width:${total ? Math.min(100, doneSets / total * 100) : 0}%"></i></div>
-    <div class="sub">${doneSets}/${total} sets · ${plan.ex.length} exercises · ~${Math.round(total * 2.6 + 8)} min</div>
-    <button class="btn acc block" style="margin-top:12px" onclick="SEL_DAY=${i};startWorkout();go('train')">${S.workout?.date === TODAY || doneSets ? 'Continue ▶' : 'Start workout ▶'}</button>
-    ${ws !== 'done' ? `<button class="btn sm ghost-bad" style="margin-top:8px;width:100%" onclick="openMiss('workout')">✕ I couldn’t train today</button>${missChips('workout')}` : ''}`}
-  </div>`; })()}
-
-  ${ritualsCard()}
-
-  ${coachCard(3)}
-
-  <div class="grid3">
-    <div class="stat"><span>Steps</span><b>${h.steps ? fmt(h.steps) : '—'}</b></div>
-    <div class="stat"><span>Resting HR</span><b>${h.rhr ? Math.round(h.rhr) : '—'}</b></div>
-    <div class="stat"><span>Sleep</span><b>${h.sleep ? h.sleep + 'h' : '—'}</b></div>
-  </div>
-  ${!S.health[TODAY]?.t ? `<div class="card"><div class="row between"><b>❤️ Apple Health</b><button class="btn sm" onclick="go('health')">How?</button></div><div class="note">Run Shortcut „Coach", then here: tap → <b>Paste</b></div><textarea id="tpaste" rows="2" placeholder="Tap here → Paste (Paste)" onpaste="setTimeout(() => pasteHealth(this.value), 50)" style="width:100%;margin-top:8px;background:var(--card2);border:1px dashed var(--acc);border-radius:10px;padding:12px;font-size:16px;color:var(--text)"></textarea></div>` : ''}
-
-  ${recoveryCard()}
-
-  <div class="card">
-    <div class="row between"><div class="sub">Food today</div><span class="sub">${eaten.filter(x => x === true).length}/5 meals${eaten.some(x => x === 'skip' || x === 'off') ? ` · <span style="color:var(--bad)">${eaten.filter(x => x === 'skip' || x === 'off').length} missed.</span>` : ''}</span></div>
-    ${t ? '' : `<p class="note">Fill in your profile so I can tailor calories and portions to you.</p>`}
-    ${nextMeal >= 0 ? `<div class="row" style="margin-top:10px" onclick="go('food')"><img src="img/meals/${MEALS[md.ids[nextMeal]].img}" style="width:64px;height:64px;border-radius:12px;object-fit:cover" alt=""><div><div class="slot" style="font-size:11px;color:var(--acc);font-weight:700">${SLOT[nextMeal].toUpperCase()}</div><b>${esc(MEALS[md.ids[nextMeal]].n)}</b><div class="sub">${fmt(MEALS[md.ids[nextMeal]].k * md.f)} kcal · ${Math.round(MEALS[md.ids[nextMeal]].p * md.f)}g protein</div></div></div>` : '<p class="note">✅ All meals done</p>'}
-    <div class="row between" style="margin-top:12px">
-      <button class="btn sm" onclick="toggleCreatine()">${S.creatine[TODAY] ? '✅' : new Date().getHours() >= 21 ? '🟥' : '⬜'} Creatine 5g</button>
-      <button class="btn sm" onclick="addWater(1)">💧 ${water}/${t?.water || 12} glasses +</button>
-    </div>
-  </div>`;
-}
 // ---------- DAILY RITUALS (spirit + learning) ----------
 function ritualsCard() {
   const items = [
@@ -462,7 +407,7 @@ function vFood() {
   const adv = kcalAdvice();
   return `
   <h1>Food</h1>
-  ${MEAL_SEL === dow() ? timeline(TODAY) : ''}
+<!--SEG:today-->  ${timeline(TODAY)}
   <div class="sub">Built on ISSN guidelines and modern sports-nutrition science</div>
   ${t ? `
   <div class="card">
@@ -479,11 +424,13 @@ function vFood() {
   <div class="card"><div class="row between"><div class="sub">💧 Water · 250 ml glass</div><b>${S.water[TODAY] || 0}/${t.water} glasses</b></div><div class="water">${Array.from({ length: Math.min(t.water, 16) }, (_, k) => `<button class="${k < (S.water[TODAY] || 0) ? 'f' : ''}" onclick="S.water[TODAY]=${k + 1 === (S.water[TODAY] || 0) ? k : k + 1};save();render()" aria-label="glasses ${k + 1}"></button>`).join('')}</div></div>
   ` : profileForm()}
 
+<!--SEG:menu-->
   <h2>Menu</h2>
   <div class="days">${MEAL_DAYS.map((_, k) => `<button class="${k === MEAL_SEL ? 'on' : ''} ${k === dow() ? 'today' : ''}" onclick="MEAL_SEL=${k};render()"><small>${DOW_S[k]}</small><b style="font-size:13px">Day ${k + 1}</b></button>`).join('')}</div>
   ${t ? `<div class="sub">Portions are scaled to your goal: ×${md.f.toFixed(2)} (${fmt(md.sum * md.f)} kcal)</div>` : ''}
   ${md.ids.map((id, k) => mealCard(id, k, md.f, dateKey ? eaten[k] : undefined, !!dateKey)).join('')}
 
+<!--SEG:guide-->
   <h2>Professional rules</h2>
   <div class="card">${NUTRI_RULES.map(([e, tt, pp]) => `<div class="why"><div class="e">${e}</div><div><b>${tt}</b><p>${pp}</p></div></div>`).join('')}</div>
   <p class="note">Photos: TheMealDB and Wikimedia Commons (CC BY / CC BY-SA authors). Calories are approximate. Because of osteochondrosis, check with a doctor/physiotherapist before starting a new program.</p>`;
@@ -604,12 +551,13 @@ function vStats() {
   const volWeeks = Array.from({ length: 8 }, (_, i) => { const a = dkey(addDays(monday(), -7 * (7 - i))), b = dkey(addDays(monday(), -7 * (6 - i))); return [a, logs.filter(([k]) => k >= a && k < b).reduce((x, [, L]) => x + Object.values(L.sets).flat().filter(s => s.ok).length, 0)]; });
   return `
   <h1>Progress</h1>
-  <button class="btn block" style="margin-top:10px" onclick="go('health')">❤️ Health & Apple Health →</button>
+<!--SEG:overview-->  <button class="btn block" style="margin-top:10px" onclick="go('health')">❤️ Health & Apple Health →</button>
   <h2>Discipline · 4 weeks</h2>
   ${adherenceTiles()}
   <div class="card"><b>Day by day</b><div style="margin-top:10px">${heatmap()}</div></div>
   ${coachCard()}
   ${missReasons()}
+<!--SEG:strength-->
   <h2>Strength & volume</h2>
   <div class="grid3" style="margin-top:12px">
     <div class="stat"><span>This week</span><b>${thisWeek}/6</b></div>
@@ -621,6 +569,7 @@ function vStats() {
   <div class="card"><b>Sets per week — 8 weeks</b>${barChart(volWeeks, { color: 'var(--blue)' })}</div>
   <div class="card"><div class="row between"><b>Body weight</b><button class="btn sm" onclick="logWeight()">+ Weigh in</button></div>${lineChart(ws, { fmtY: v => v + ' kg' })}${(() => { const r = weeklyRate(); return r ? `<div class="note">7-day average: ${r.now.toFixed(1)} kg (${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(2)}%/week)</div>` : ''; })()}</div>
   <div class="card"><b>🏆 Personal records (e1RM)</b>${prs.length ? prs.map(([id, p]) => `<div class="row between" style="padding:8px 0;border-top:1px solid var(--line)"><span>${esc(EX[id]?.n || id)}</span><span><b>${Math.round(p.v)}</b> <span class="sub">kg · ${p.w}×${p.r}</span></span></div>`).join('') : '<p class="note">Shows up after your first workout.</p>'}</div>
+<!--SEG:settings-->
   <h2>Settings</h2>
   <div class="card">
     <label class="f">Cycle start (Deload count)<input type="date" id="cycStart" value="${S.start}" onchange="S.start=this.value;save();render()"></label>

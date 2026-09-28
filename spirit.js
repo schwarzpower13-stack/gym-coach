@@ -190,6 +190,7 @@ function vSpirit() {
   <h1>Mind</h1>
   <div class="sub">Morning energy · daytime calm · nightly cleanse</div>
 
+<!--SEG:morning-->
   <h2>🌅 On waking</h2>
   ${card(spStatus('breath', TODAY), `<div class="row between"><b>🌬️ DMT Breathing</b>${pillSt(spStatus('breath', TODAY))}</div>
     <p class="note">Following the video (Breathe With Sandy), ~16 min: shamanic breathing → hold at the top and the bottom → <b>5 rounds DMT squeeze</b> (30 s breathing → slow inhale with pelvic-floor and belly squeeze → Hold ${DMT_HOLDS.join('/')} s) → 3 min meditation.</p>
@@ -215,6 +216,7 @@ function vSpirit() {
     <details class="note"><summary>Change level manually</summary><select onchange="S.staticOverride=+this.value||0;save();render()" style="margin-top:6px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px"><option value="0">Automatic</option>${[15, 20, 25, 30, 35, 40, 45, 50, 55, 60].map(m => `<option ${S.staticOverride === m ? 'selected' : ''} value="${m}">${m} min</option>`).join('')}</select></details>
     ${statics.length > 1 ? lineChart(statics, { fmtY: v => v + 'min' }) : ''}`)}
 
+<!--SEG:evening-->
   <h2>🌙 Before bed</h2>
   ${card(spStatus('journal', TODAY), `<div class="row between"><b>📖 Gratitude & manifestation</b>${pillSt(spStatus('journal', TODAY))}</div>
     <div class="sub" style="margin-top:8px">Today I’m grateful for...</div>
