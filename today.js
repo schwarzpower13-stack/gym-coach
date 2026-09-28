@@ -50,7 +50,7 @@ function vToday() {
     <div class="dh-r">
       <div class="sub">Today</div><b>${done} of ${items.length} done</b>
       ${rd ? `<div class="note">Readiness <b style="color:var(--${rd.cls})">${rd.sc}</b> · ${esc(rd.t)}</div>` : ''}
-      <button class="vibe-chip" onclick="goSeg('spirit','freq')">${vibe ? `〰️ Frequency <b>${vibe.score}</b> · ${vibe.name}` : '〰️ Check your frequency'}</button>
+      <button class="vibe-chip" onclick="goSeg('spirit','freq')">${vibe ? `〰️ Frequency <b>${vibe.lvl}</b> · ${vibe.name}` : '〰️ Check your frequency'}</button>
     </div>
   </div>
 

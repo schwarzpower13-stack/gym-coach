@@ -1,54 +1,33 @@
-// ============ FREQUENCY: check-in → vibe score (a metaphor), real hum-pitch test, calming tones ============
-const VIBE_LEVELS = [
-  [0, 'Low tide', '#e39a8f', 'Your system is asking for rest, not force. Hydrate, eat, go to bed early. A 10-minute walk and 5 slow breaths are enough today.'],
-  [35, 'Grounded', '#e6c27f', 'Stable base. One small win (a walk, a good meal, 5 minutes of humming) will lift you into flow.'],
-  [55, 'Flow', '#9fd49a', 'Good rhythm. Protect it: train with focus, eat well, keep the evening calm.'],
-  [70, 'Radiant', '#86d5c0', 'High energy and calm together — a great day to push a PR or create something.'],
-  [85, 'Peak', '#b8a8f0', 'Rare air. Enjoy it, share it, and still go to bed on time.'],
+// ============ FREQUENCY · page, living wave, hum test, tune-in ============
+const PRINCIPLES = [
+  ['Your state is your lens', 'In a low state the brain scans for threats and remembers the bad; in a high state it notices chances and people. Same world, different life.', 'Bower 1981 — mood-congruent memory & attention'],
+  ['Low states choose short-term relief', 'Stress pushes the brain from thoughtful choices to habits and quick fixes — scrolling, sugar, snapping at people. The choices then feed the low state.', 'Schwabe & Wolf 2009 — stress and habitual decisions'],
+  ['High states broaden and build', 'Positive emotion widens attention and, over weeks, builds real resources: skills, health, relationships.', 'Fredrickson 2001 — broaden-and-build theory'],
+  ['Like attracts like', 'Moods spread through people up to three degrees of separation. Your frequency shapes who comes close and how they respond to you.', 'Fowler & Christakis, BMJ 2008'],
+  ['The body leads the mind', 'Breath, sleep, light and movement change your state faster than thinking. One night of bad sleep makes the brain’s alarm 60% more reactive.', 'Balban 2023; Yoo et al. 2007'],
+  ['Name it to tame it', 'Honestly naming where you are is the first step up. You can’t raise what you won’t look at.', 'Lieberman et al. 2007 — affect labelling'],
+  ['Small daily shifts compound', 'New habits take on average ~66 days to become automatic. One scan and one shift a day is how the baseline itself moves up.', 'Lally et al. 2010'],
 ];
-const CHECKS = [['mood', '🙂', 'Mood'], ['energy', '⚡', 'Energy'], ['calm', '🌊', 'Calm'], ['grat', '🙏', 'Gratitude'], ['connect', '🤝', 'Connection']];
-const fr = k => ((S.freq = S.freq || {})[k] = S.freq[k] || {});
-const frGet = k => (S.freq || {})[k] || {};
-const level = sc => [...VIBE_LEVELS].reverse().find(l => sc >= l[0]);
 
-function vibeScore(k = TODAY) {
-  const f = frGet(k); if (!f.check) return null;
-  const c = CHECKS.reduce((a, [id]) => a + (f.check[id] || 5), 0) / CHECKS.length / 10;
-  const h = S.health[k] || {}, body = [];
-  if (h.sleep) body.push(Math.min(1, h.sleep / 8));
-  if (k === TODAY) { const rd = readiness(); if (rd) body.push(rd.sc / 100); }
-  if (f.hum) body.push(f.hum.steady / 100);
-  const b = body.length ? body.reduce((x, y) => x + y) / body.length : c;
-  let habit = c;
-  if (k === TODAY) { const it = todayItems(); habit = Math.min(1, it.filter(x => DONE(x.s)).length / Math.max(4, it.length * 0.6)); }
-  const sc = Math.round((c * 0.55 + b * 0.25 + habit * 0.2) * 100);
-  return Math.max(1, Math.min(100, sc));
-}
-function vibeToday() { const sc = vibeScore(); if (sc == null) return null; const l = level(sc); return { score: sc, name: l[1], color: l[2], tip: l[3] }; }
-
-function saveCheck() {
-  const f = fr(TODAY); f.check = {}; CHECKS.forEach(([id]) => f.check[id] = +$('#ck_' + id).value); f.word = $('#ck_word').value.trim(); f.t = Date.now();
-  save(); render(); const v = vibeToday(); toast(`〰️ ${v.name} · ${v.score}`);
-}
-
-// ---- living wave (canvas): frequency, amplitude and colour follow the score ----
-let _waveRAF;
-function startWave() {
-  cancelAnimationFrame(_waveRAF); const cv = $('#wave'); if (!cv) return;
+// ---- living wave: frequency, amplitude and colour follow the score ----
+let _waveRAF = {};
+function startWave(score, cv) {
+  cv = cv || [...document.querySelectorAll('canvas.wave')].pop(); if (!cv) return;
+  const id = cv.id || 'w'; cancelAnimationFrame(_waveRAF[id]);
   const dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr;
   const g = cv.getContext('2d'); g.scale(dpr, dpr);
-  const sc = vibeScore() ?? 50, col = (level(sc) || VIBE_LEVELS[2])[2], cycles = 1 + sc / 100 * 2.6, amp = H * (0.12 + sc / 100 * 0.18);
+  const sc = score ?? vibeScore() ?? 50, col = stepOf(sc, lastScan()?.emo).color, cycles = 1 + sc / 100 * 2.6, amp = H * (0.14 + sc / 100 * 0.2);
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const draw = t => {
     if (!document.body.contains(cv)) return;
     g.clearRect(0, 0, W, H);
     for (let layer = 0; layer < 3; layer++) {
-      g.beginPath(); g.lineWidth = layer ? 1.2 : 2.6; g.strokeStyle = col; g.globalAlpha = layer ? 0.28 - layer * 0.06 : 0.95;
+      g.beginPath(); g.lineWidth = layer ? 1.2 : 2.8; g.strokeStyle = col; g.globalAlpha = layer ? 0.3 - layer * 0.07 : 0.95;
       const ph = t / (2200 + layer * 900) + layer * 1.3;
       for (let x = 0; x <= W; x += 3) { const y = H / 2 + Math.sin(x / W * cycles * Math.PI * 2 + ph) * amp * (1 - layer * 0.25) * Math.sin(Math.PI * x / W); x ? g.lineTo(x, y) : g.moveTo(x, y); }
       g.stroke();
     }
-    g.globalAlpha = 1; if (!reduce) _waveRAF = requestAnimationFrame(draw);
+    g.globalAlpha = 1; if (!reduce) _waveRAF[id] = requestAnimationFrame(draw);
   };
   draw(0);
 }
@@ -69,7 +48,7 @@ async function humTest() {
   const src = actx.createMediaStreamSource(stream), an = actx.createAnalyser(); an.fftSize = 2048; src.connect(an);
   const buf = new Float32Array(an.fftSize), pitches = [], dur = 12000, t0 = Date.now(); let voiced = 0;
   SES = { kind: 'hum' };
-  overlay(`<button class="x" onclick="SES.stop()">✕</button><div class="sess-top">Hum test · 12 s</div><div class="orb calm" id="orb"></div><div class="sess-big" id="sBig">—</div><div class="sess-sub" id="sSub">Close your mouth and hum one comfortable, steady note — like “mmmm”. Long, slow, relaxed.</div>`);
+  overlay(`<button class="x" onclick="SES.stop()">✕</button><div class="sess-top">Hum test · 12 s</div><div class="orb calm" id="orb"></div><div class="sess-big" id="sBig">—</div><div class="sess-sub" id="sSub">Close your mouth and hum one comfortable, steady note — “mmmm”. Long, slow, relaxed.</div>`);
   const stop = () => { clearInterval(SES.int); stream.getTracks().forEach(t => t.stop()); };
   SES.stop = () => { stop(); closeSession(false); };
   SES.int = setInterval(() => {
@@ -84,13 +63,13 @@ async function humTest() {
       const steady = Math.round(100 * Math.max(0, 1 - Math.min(1, (sd / mean) * 6))), sec = Math.round(voiced / 100) / 10;
       fr(TODAY).hum = { hz: Math.round(med), steady, sec, note: noteName(med), t: Date.now() }; save();
       overlay(`<button class="x" onclick="closeSession(false)">✕</button><div class="sess-top">Your hum</div><div class="sess-big">${Math.round(med)} Hz</div>
-        <div class="sess-sub">Note <b>${noteName(med)}</b> · steadiness <b>${steady}%</b> · voiced ${sec} s<br><br>${steady >= 80 ? 'Very steady — your nervous system is calm.' : steady >= 55 ? 'Fairly steady. A few slow breaths and a longer exhale will smooth it out.' : 'Wobbly today — that’s a signal to slow down. Try 5 rounds of humming breath (bhramari).'}</div>
+        <div class="sess-sub">Note <b>${noteName(med)}</b> · steadiness <b>${steady}%</b> · voiced ${sec} s<br><br>${steady >= 80 ? 'Very steady — your nervous system is calm.' : steady >= 55 ? 'Fairly steady. A few slow breaths and a longer exhale will smooth it out.' : 'Wobbly today — a signal to slow down. Try 5 rounds of humming breath (bhramari).'}<br><br>Your steadiness now counts in your frequency score.</div>
         <button class="btn acc" onclick="closeSession(false)">Done</button>`);
     }
   }, 50);
 }
 
-// ---- calming sound + coherent breathing (5.5 breaths/min) ----
+// ---- calming sound + resonance breathing (5.5 breaths/min) ----
 const TONES = { t432: ['432 Hz drone', 432], t528: ['528 Hz drone', 528], theta: ['Theta 6 Hz binaural (headphones)', 0], ocean: ['Ocean noise', -1] };
 function startTune(kind, minutes) {
   actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); keepAwake();
@@ -112,39 +91,61 @@ function startTune(kind, minutes) {
   overlay(`<button class="x" onclick="SES.finish(true)">✕</button><div class="sess-top">${TONES[kind][0]} · ${minutes} min</div><div class="orb calm" id="orb"></div><div class="sess-big" id="sBig"></div><div class="sess-sub" id="sSub"></div><button class="btn" onclick="SES.finish(true)">Finish</button>`);
   SES.int = setInterval(() => {
     const el = (Date.now() - SES.t0) / 1000, ph = (el % 11) / 11, inh = ph < 0.5, left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
-    $('#orb').style.transform = `scale(${inh ? 0.55 + 0.45 * Math.sin(ph * Math.PI) : 0.55 + 0.45 * Math.sin(ph * Math.PI)})`;
+    $('#orb').style.transform = `scale(${0.55 + 0.45 * Math.sin(ph * Math.PI)})`;
     $('#sBig').textContent = `${Math.floor(left / 60)}:${pad(left % 60)}`; $('#sSub').textContent = inh ? 'Breathe in through the nose… 5.5 s' : 'Breathe out, slow and soft… 5.5 s';
     if (left <= 0) { gong(); finish(true); }
   }, 100);
 }
 
+// ---- page ----
 function vFreq() {
-  const f = frGet(TODAY), v = vibeToday(), ck = f.check || {};
-  const hist = lastDays(14).map(k => [k, vibeScore(k)]).filter(p => p[1] != null);
-  setTimeout(startWave, 0);
+  const v = vibeToday(), f = frGet(TODAY), scan = lastScan(), avg7 = avgScore(7, 1), trend = v && avg7 != null ? Math.round(v.score - avg7) : null;
+  const st = v ? stepOf(v.score, scan?.emo) : null, band = st ? st.band : 'build', ins = insights(), sh = shiftsAll(), allScans = Object.values(S.freq || {}).reduce((a, x) => a + (x.scans?.length || 0), 0);
+  const hist = lastDays(30).map(k => [k, vibeScore(k)]).filter(p => p[1] != null);
+  const avgShift = sh.length ? Math.round(sh.reduce((a, s) => a + s.delta, 0) / sh.length) : null;
+  setTimeout(() => startWave(v?.score, $('#wave')), 0);
   return `
-  <div class="card freq-hero">
+  <div class="card freq-hero" style="--c:${st ? st.color : 'var(--lav)'}">
     <canvas id="wave" class="wave" aria-hidden="true"></canvas>
-    ${v ? `<div class="fh-row"><div><div class="sub">Your frequency today</div><div class="fh-score" style="color:${v.color}">${v.score}<span>/100</span></div><b style="color:${v.color}">${v.name}</b></div>
-      <div class="fh-tip">${v.tip}</div></div>` : `<div class="fh-row"><div><div class="sub">Your frequency today</div><div class="fh-score">—</div><b>Check in below</b></div><div class="fh-tip">Five quick sliders. It takes 20 seconds and tunes the whole app to how you actually feel.</div></div>`}
-    <div class="fh-scale">${VIBE_LEVELS.map(l => `<span style="--c:${l[2]}" class="${v && v.name === l[1] ? 'on' : ''}">${l[1]}</span>`).join('')}</div>
+    ${v ? `<div class="fh-top"><div><div class="sub">Your frequency</div><div class="fh-lvl">${st.lvl}</div><div class="fh-name">${st.name}</div></div>
+        <div class="fh-side"><span class="pill" style="border-color:${st.color};color:${st.color}">${BANDS[band].name}</span><div class="sub">score ${v.score}/100</div>${trend != null ? `<div class="sub" style="color:${trend >= 0 ? 'var(--good)' : 'var(--bad)'}">${trend >= 0 ? '▲' : '▼'} ${Math.abs(trend)} vs your week</div>` : ''}<div class="sub">${scan ? 'scanned ' + new Date(scan.t).toTimeString().slice(0, 5) : 'quick check-in'}</div></div></div>
+        <p class="fh-goal">${BANDS[band].goal}</p>
+        <button class="btn acc block" onclick="startShift('${band}')">🌊 Raise my frequency · ~${protoMinutes(band)} min</button>
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn" style="flex:1" onclick="startScan()">↻ Rescan</button><button class="btn" style="flex:1" onclick="startShift('${band}',true)">⚡ Quick ~${protoMinutes(band, true)} min</button><button class="btn" onclick="shareCard()" aria-label="Share">⤴</button></div>`
+      : `<div class="fh-top"><div><div class="sub">Your frequency</div><div class="fh-lvl">?</div><div class="fh-name">Not measured yet</div></div></div>
+        <p class="fh-goal">Five honest questions about your day, your stress, one feeling and what you gave your body — about 60 seconds. You’ll see exactly where you vibrate right now and how to rise.</p>
+        <button class="btn acc block" onclick="startScan()">〰️ Scan my frequency · 60 s</button>`}
   </div>
 
-  <div class="card"><b>🎚️ Check-in</b><span class="sub"> · how are you, honestly?</span>
-    ${CHECKS.map(([id, ic, l]) => `<label class="slider"><span>${ic} ${l}</span><input type="range" id="ck_${id}" min="1" max="10" value="${ck[id] || 6}" oninput="this.nextElementSibling.textContent=this.value"><b>${ck[id] || 6}</b></label>`).join('')}
-    <input id="ck_word" class="jin" placeholder="One word for today (optional)" value="${esc(f.word || '')}">
-    <button class="btn acc block" style="margin-top:10px" onclick="saveCheck()">${f.check ? 'Update' : 'Save'} check-in</button></div>
+  <details class="card ladder-card" ${v ? '' : 'open'}><summary><b>🪜 The ladder</b> <span class="sub">16 levels · where you are</span></summary>
+    <div class="ladder">${LADDER.map((l, i) => [l, i]).reverse().map(([l, i]) => { const b = Object.entries(BANDS).find(([, x]) => i >= x.from && i <= x.to)[1];
+      return `${i === 7 ? '<div class="line200">— the 200 line: below it life happens to you, above it you create it —</div>' : ''}<div class="rung ${st && st.i === i ? 'on' : ''}" style="--c:${b.color}"><b>${l[0]}</b><span>${l[1]}</span><small>${l[2]}</small></div>`; }).join('')}</div>
+    <p class="note">Level names and numbers follow David R. Hawkins’ <i>Map of Consciousness</i> — a spiritual framework used here as a ladder to climb. Your position on it is calculated from validated measures, not guessed.</p></details>
 
+  <div class="card"><div class="row between"><b>🌊 Your protocol · ${BANDS[band].name}</b><span class="sub">~${protoMinutes(band)} min</span></div>
+    <ol class="steps proto">${PROTOCOLS[band].map(s => `<li><b>${s.t}</b>${s.min ? ` <span class="sub">· ${s.min} min</span>` : ''}<p>${s.do}</p><small>${s.src}</small></li>`).join('')}</ol>
+    <button class="btn acc block" onclick="startShift('${band}')">Start the shift</button></div>
+
+  <div class="card"><b>🔍 What moves YOUR frequency</b>
+    ${ins.length ? ins.slice(0, 5).map(x => `<div class="ins"><span>${x.ic} ${x.label}</span><b style="color:${x.d > 0 ? 'var(--good)' : 'var(--bad)'}">${x.d > 0 ? '+' : ''}${x.d}</b></div>`).join('') + `<p class="note">Average score on days with vs without, from your last ${ins[0].n} scans.</p>`
+      : `<p class="note">After a week of daily scans, the app shows which habits raise your frequency the most — your personal data, not general advice. ${allScans ? `${allScans} scan${allScans > 1 ? 's' : ''} so far.` : ''}</p>`}</div>
+
+  <div class="grid3"><div class="stat"><span>Scan streak</span><b>${scanStreak()}</b></div><div class="stat"><span>Shifts</span><b>${sh.length}</b></div><div class="stat"><span>Avg shift</span><b>${avgShift != null ? (avgShift >= 0 ? '+' : '') + avgShift : '—'}</b></div></div>
+  ${hist.length > 1 ? `<div class="card"><b>〰️ 30 days</b>${lineChart(hist, { color: 'var(--lav)', fmtY: v => v })}</div>` : ''}
+  <div class="badges">${BADGES.map(([id, ic, l, ok]) => `<div class="badge ${ok() ? 'on' : ''}"><i>${ic}</i><span>${l}</span></div>`).join('')}</div>
+
+  <h2>🧰 Tools</h2>
   <div class="card"><div class="row between"><b>🎙️ Hum test</b>${f.hum ? `<span class="pill good">${f.hum.hz} Hz · ${f.hum.steady}% steady</span>` : ''}</div>
-    <p class="note">This one is a <b>real measurement</b>: hum a steady note for 12 seconds and the app reads the pitch of your voice and how steady it is. A long, steady hum means a calm nervous system — humming lengthens the exhale and stimulates the vagus nerve.</p>
+    <p class="note">A <b>real measurement</b>: hum one steady note for 12 seconds; the app reads your voice’s pitch and how steady it is. Steadiness feeds your body score — a long, even hum means a calm nervous system.</p>
     <button class="btn block" onclick="humTest()">🎙️ Start hum test</button></div>
-
-  <div class="card"><b>🎧 Tune in</b><p class="note">Soft tones with slow breathing at 5.5 breaths per minute — the pace that measurably raises heart-rate variability (resonance breathing). The tones themselves are for relaxation; the breathing does the work.</p>
+  <div class="card"><b>🎧 Tune in</b><p class="note">Soft tones while you breathe at 5.5 breaths per minute — the pace that measurably raises heart-rate variability. The tones relax; the breathing does the work.</p>
     <div class="tunes">${Object.entries(TONES).map(([k, [n]]) => `<div class="tune"><b>${n}</b><div class="row" style="gap:6px">${[5, 10, 20].map(m => `<button class="chip" onclick="startTune('${k}',${m})">${m} min</button>`).join('')}</div></div>`).join('')}</div>
     ${f.tune ? `<div class="sub" style="margin-top:8px">Today: ${f.tune} min of calm</div>` : ''}</div>
 
-  ${hist.length > 1 ? `<div class="card"><b>〰️ Last 14 days</b>${lineChart(hist, { color: 'var(--lav)', fmtY: v => v })}</div>` : ''}
-  <p class="note" style="text-align:center">“Frequency” here is a metaphor for your overall state, built from how you feel, your body data and your habits — not a physical measurement of vibrations. The hum test is the one real frequency reading.</p>`;
+  <h2>📜 The Frequency Principle</h2>
+  <div class="card manifesto"><p class="lead">Low frequency attracts low-quality outcomes — not by magic, but because a low state changes what you notice, what you choose and who you draw close. Raise your frequency, and your world responds.</p>
+    ${PRINCIPLES.map(([t, p, s], i) => `<details><summary><b>${i + 1}. ${t}</b></summary><p>${p}</p><small>${s}</small></details>`).join('')}</div>
+  <p class="note" style="text-align:center">How it’s measured: WHO-5 Well-Being Index (35%), stress & sense of control (15%), the feeling you choose (20%), body signals — sleep, readiness, hum steadiness (15%) — and your last 24 hours of habits (15%). It measures your state, not physical vibrations. Not a medical tool.</p>`;
 }
 
 function vMind() {
