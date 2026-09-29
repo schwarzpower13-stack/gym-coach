@@ -213,7 +213,10 @@ function render() {
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === TAB));
   const NAV = { health: 'stats', report: 'food' };
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === (NAV[TAB] || TAB)));
-  app.innerHTML = ({ today: vToday, train: vTrain, food: () => segmented('food', { today: '📸 Today', menu: '🍽️ Menu', guide: '📘 Guide' }, vFood()), health: vHealth, stats: () => segmented('stats', { overview: '🌿 Discipline', strength: '💪 Strength', settings: '⚙️ Settings' }, vStats()), spirit: vMind, learn: vLearn, report: vReport })[TAB]();
+  const view = { today: vToday, train: vTrain, food: () => segmented('food', { today: '📸 Today', menu: '🍽️ Menu', guide: '📘 Guide' }, vFood()), health: vHealth, stats: () => segmented('stats', { overview: '🌿 Discipline', strength: '💪 Strength', settings: '⚙️ Settings' }, vStats()), spirit: vMind, learn: vLearn, report: vReport }[TAB];
+  // one broken page must never lock the whole app — show what failed and keep navigation working
+  try { app.innerHTML = view(); }
+  catch (e) { console.error(e); app.innerHTML = `<h1>Something went wrong</h1><div class="card"><p class="note">This page couldn’t load. Your data is safe.</p><code>${esc(e.message)}</code><button class="btn block" style="margin-top:12px" onclick="go('today')">Back to Today</button></div>`; }
   if (TAB === 'food' || TAB === 'today') hydratePhotos();
   if (TAB === 'train') tickWorkout();
 }

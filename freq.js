@@ -53,7 +53,7 @@ function startTune(kind, minutes) {
 // ---- page ----
 function vFreq() {
   const scan = lastScan(), v3 = scan?.v === 3 ? scan : null, reading = latestReading(), v = vibeToday(), st = v ? stepOf(v.score) : null;
-  const shifts = frGet(TODAY).shifts || [], lastShift = shifts[shifts.length - 1], plan = v3 ? planFor(v3.dims) : null;
+  const shifts = (frGet(TODAY).shifts || []).filter(s => s.plan), lastShift = shifts[shifts.length - 1], plan = v3 ? planFor(v3.dims) : null;
   const hist = lastDays(30).map(k => [k, lastScan(k)]).filter(([, s]) => s).map(([k, s]) => [k, s.freq || freqIndex(s.score)]);
   const fieldHist = v3Scans().filter(s => s.m?.field?.ok).slice(-14).map(s => [s.k, s.m.field.width]);
   const ins = insights(), avg7 = avgScore(7, 1), trend = v && avg7 != null ? freqIndex(v.score) - freqIndex(avg7) : null;

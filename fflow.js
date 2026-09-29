@@ -225,7 +225,7 @@ function practice(id) { FLOW = { kind: 'practice' }; SES = { kind: 'flow' }; kee
 // ---------- share card ----------
 function shareCard() {
   const sc = vibeScore() ?? 50, st = stepOf(sc), W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-  const sh = (frGet(TODAY).shifts || []).slice(-1)[0];
+  const sh = (frGet(TODAY).shifts || []).filter(s => s.plan).slice(-1)[0];
   const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#16232a'); gr.addColorStop(1, '#0c1114'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
   const rg = g.createRadialGradient(W / 2, 420, 20, W / 2, 420, 520); rg.addColorStop(0, st.color + '55'); rg.addColorStop(1, 'transparent'); g.fillStyle = rg; g.fillRect(0, 0, W, H);
   for (let L = 0; L < 3; L++) { g.beginPath(); g.lineWidth = L ? 3 : 8; g.strokeStyle = st.color; g.globalAlpha = L ? 0.35 : 1; const cyc = 1 + sc / 100 * 2.6, amp = 70 + sc * 1.4;
