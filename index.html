@@ -324,6 +324,54 @@ code { background: var(--card2); padding: 1px 6px; border-radius: 6px; font-size
 .why-src summary { color: var(--acc); cursor: pointer; }
 .why-src i { color: var(--dim); font-size: 11.5px; }
 
+/* frequency 3 — sensors, perception, flows */
+.step-ico { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; color: var(--acc); background: rgba(134,213,192,.10); border: 1px solid rgba(134,213,192,.25); }
+.chips-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.dchip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 8px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 13px; color: var(--mute); }
+.dchip svg { width: 18px; height: 18px; color: var(--acc); }
+canvas.live { width: 100%; height: 120px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.lvl { width: 70%; height: 6px; border-radius: 6px; background: var(--card2); overflow: hidden; } .lvl i { display: block; height: 100%; background: var(--lav); transition: width .1s; }
+.arena { position: relative; width: min(84vw, 360px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, var(--card) 0%, var(--bg) 75%); border: 1px solid var(--line); }
+.arena.mask { background: repeating-conic-gradient(var(--card2) 0 6deg, var(--card) 6deg 12deg); }
+.arena .fix { position: absolute; inset: 0; display: grid; place-items: center; font-size: 28px; color: var(--mute); pointer-events: none; }
+.flash-dot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #e7eef0; box-shadow: 0 0 12px #fff; }
+.arena .dir { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; border: 1px solid rgba(134,213,192,.4); background: rgba(134,213,192,.10); }
+.arena .dir:active { background: var(--acc); }
+.crowd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(84vw, 340px); }
+.crowd button { background: none; border: 0; padding: 4px; border-radius: 12px; display: grid; place-items: center; }
+.crowd button.wrong { background: var(--badbg); }
+.lens { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; width: 100%; text-align: left; }
+.lens p { margin: 4px 0 0; }
+.spectrum { display: flex; flex-direction: column; gap: 10px; width: 100%; margin-top: 10px; text-align: left; }
+.sp-row { display: grid; grid-template-columns: 30px 1fr 30px; gap: 10px; align-items: center; }
+.sp-ico { color: var(--mute); } .sp-ico svg { width: 24px; height: 24px; }
+.sp-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; } .sp-top small { color: var(--dim); }
+.sp-bar { height: 7px; border-radius: 7px; background: var(--card2); overflow: hidden; margin-top: 4px; } .sp-bar i { display: block; height: 100%; border-radius: 7px; }
+.sp-val { text-align: right; font-variant-numeric: tabular-nums; }
+.result { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.cmp-big { display: flex; align-items: baseline; gap: 14px; font-size: 64px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.cmp-big i { font-size: 28px; color: var(--dim); font-style: normal; } .cmp-big.small { font-size: 36px; }
+.cmp { width: 100%; display: flex; flex-direction: column; gap: 2px; }
+.cmp-row { display: grid; grid-template-columns: 1fr auto 20px auto; gap: 8px; padding: 8px 12px; border-radius: 10px; background: var(--card); font-variant-numeric: tabular-nums; font-size: 14px; }
+.cmp-row i { color: var(--dim); font-style: normal; text-align: center; }
+.watch { width: 100%; background: var(--card); border-radius: 12px; padding: 10px 12px; } .watch summary { color: var(--acc); cursor: pointer; font-size: 14px; }
+.how { text-align: left; width: 100%; padding-left: 20px; margin: 0; color: var(--text); font-size: 14.5px; line-height: 1.6; }
+.effect { color: var(--dim); font-size: 12.5px; text-align: center; margin: 0; }
+.guide { display: grid; place-items: center; min-height: 10px; }
+.guide .orb { width: 170px; height: 170px; }
+.box-g { position: relative; width: 150px; height: 150px; border: 2px solid rgba(134,213,192,.35); border-radius: 18px; margin: 10px; }
+.box-g i { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 18px var(--acc); transition: left .08s linear, top .08s linear; }
+.pano-g { position: relative; width: 200px; height: 200px; } .pano-g i { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: var(--acc); }
+.pano-g b { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--acc); animation: pano 8s ease-in-out infinite; }
+@keyframes pano { 0% { transform: scale(.12); opacity: 1; } 70% { transform: scale(1); opacity: .5; } 100% { transform: scale(1.1); opacity: 0; } }
+.tech-grid { display: grid; gap: 12px; }
+.tech { display: grid; grid-template-columns: 112px 1fr; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.tech img { width: 112px; height: 100%; object-fit: cover; }
+.tech-b { padding: 10px 12px 12px 0; display: flex; flex-direction: column; gap: 4px; }
+.tech-b small { color: var(--dim); font-size: 12px; } .tech-b p { margin: 0 0 4px; color: var(--mute); font-size: 12.5px; }
+.how-grid p { color: var(--mute); font-size: 13.5px; } .how-grid b { color: var(--text); }
+.shift-card { text-align: center; }
+
 /* nav */
 nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,21,25,.88); backdrop-filter: blur(14px); border-top: 1px solid var(--line); display: flex; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); z-index: 10; }
 nav button { flex: 1; border: 0; background: none; color: var(--dim); font-size: 10.5px; padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -356,8 +404,10 @@ nav button.on { color: var(--acc); }
 <script src="migrate.js"></script>
 <script src="ui.js"></script>
 <script src="today.js"></script>
+<script src="sense.js"></script>
+<script src="perception.js"></script>
 <script src="freq-core.js"></script>
-<script src="freq-scan.js"></script>
+<script src="fflow.js"></script>
 <script src="freq.js"></script>
 <script src="app.js"></script>
 </body>

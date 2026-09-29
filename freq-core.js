@@ -1,100 +1,84 @@
-// ============ FREQUENCY · core model ============
-// Score 0-100 built from:  WHO-5 wellbeing (35%) · stress & control (15%) · emotion self-placement (20%)
-//                          body signals (15%) · last-24h behaviours (15%)   — weights renormalise if a part is missing.
-// The score is placed on a 16-step ladder (names/numbers from D. R. Hawkins' "Map of Consciousness" — used as a
-// motivational framework, not as physics). Bands decide the protocol that raises it.
+// ============ FREQUENCY · model (v3 — measured, not self-reported) ============
+// Five dimensions, each 0-1, measured by the phone:
+//   breath (25%) · voice (20%) · perception (30%: field of view + opportunity detection) · heart (15%, optional) · recovery (10%, Apple Health)
+// Missing dimensions are dropped and weights renormalise. After 5 scans every dimension is also compared with the
+// person's own normal (40%), so the index tracks *your* state, not an average person's.
+// The 0-100 score is shown as a continuous frequency index on the 20–600 scale of D. R. Hawkins' Map of Consciousness
+// (used as a framework and a language, not as a physical measurement).
 
 const LADDER = [
-  [20, 'Shame', 'Ashamed'], [30, 'Guilt', 'Guilty'], [50, 'Apathy', 'Numb / flat'], [75, 'Grief', 'Sad / heavy'], [100, 'Fear', 'Anxious / afraid'],
-  [125, 'Desire', 'Craving / restless'], [150, 'Anger', 'Irritated / angry'], [175, 'Pride', 'Defensive / proud'],
-  [200, 'Courage', 'Brave / ready'], [250, 'Neutrality', 'Okay / neutral'], [310, 'Willingness', 'Willing / hopeful'],
-  [350, 'Acceptance', 'At ease / accepting'], [400, 'Reason', 'Clear / focused'],
-  [500, 'Love', 'Warm / loving'], [540, 'Joy', 'Joyful'], [600, 'Peace', 'Peaceful / still'],
+  [20, 'Shame'], [30, 'Guilt'], [50, 'Apathy'], [75, 'Grief'], [100, 'Fear'], [125, 'Desire'], [150, 'Anger'], [175, 'Pride'],
+  [200, 'Courage'], [250, 'Neutrality'], [310, 'Willingness'], [350, 'Acceptance'], [400, 'Reason'], [500, 'Love'], [540, 'Joy'], [600, 'Peace'],
 ];
+const RUNG_AT = [0, 6, 11, 16, 21, 27, 33, 38, 44, 52, 60, 67, 74, 81, 88, 94, 100];
 const BANDS = {
-  ground:  { name: 'Heavy',    color: '#e39a8f', from: 0,  to: 4,  goal: 'Stabilise the body first. Nothing big — just calm, warm, safe.' },
-  release: { name: 'Reactive', color: '#e6b27f', from: 5,  to: 7,  goal: 'There is energy here — let it move out of the body instead of into your choices.' },
-  build:   { name: 'Rising',   color: '#9fd49a', from: 8,  to: 10, goal: 'You are above the line. Build momentum with one brave action and real gratitude.' },
-  expand:  { name: 'Clear',    color: '#86d5c0', from: 11, to: 12, goal: 'Clear mind — the best state to create, learn and train with focus.' },
-  share:   { name: 'Radiant',  color: '#b8a8f0', from: 13, to: 15, goal: 'High and calm. Share it, savour it, and protect your sleep.' },
+  ground:  { name: 'Contracted', color: '#e39a8f', from: 0, to: 4,   read: 'Your system is in protection mode. Breath is fast, attention narrows to threats, and the good around you is hard to see.' },
+  release: { name: 'Reactive',   color: '#e6b27f', from: 5, to: 7,   read: 'Energy is high but pointed outward — quick to react, slow to notice what is working.' },
+  build:   { name: 'Opening',    color: '#9fd49a', from: 8, to: 10,  read: 'Above the line. Your field is widening; you start to see options instead of obstacles.' },
+  expand:  { name: 'Clear',      color: '#86d5c0', from: 11, to: 12, read: 'Calm body, wide attention, steady voice. The state for creating, deciding and connecting.' },
+  share:   { name: 'Radiant',    color: '#b8a8f0', from: 13, to: 15, read: 'Coherent and open. People and opportunities come easily into view — and toward you.' },
 };
-const WHO5 = [
-  'I have felt cheerful and in good spirits', 'I have felt calm and relaxed', 'I have felt active and vigorous',
-  'I woke up feeling fresh and rested', 'My day has been filled with things that interest me',
-];
-const WHO5_SCALE = ['Not at all', 'A little', 'Some of the time', 'Often', 'Most of the time', 'All the time'];
-const BEHAVIOURS = [
-  ['sleep', '😴', 'Slept 7+ hours'], ['moved', '🏃', 'Trained or moved 30+ min'], ['fed', '🥗', 'Ate 3+ real meals'], ['light', '☀️', 'Got daylight outside'],
-  ['breath', '🌬️', 'Did breathwork or meditation'], ['grat', '🙏', 'Wrote or felt gratitude'], ['people', '🤝', 'Had a real conversation'], ['screen', '📵', 'No doom-scrolling'],
-];
+const DIMS = {
+  breath:     { t: 'Breath',     w: 0.25, unit: m => m ? `${m.rate}/min · ${m.cv < 0.2 ? 'even' : m.cv < 0.35 ? 'uneven' : 'erratic'}` : '' },
+  voice:      { t: 'Voice',      w: 0.20, unit: m => m ? `${m.hz} Hz · jitter ${m.jitter}%` : '' },
+  perception: { t: 'Perception', w: 0.30, unit: m => m ? `field ${m.field}% · ${m.perMin} finds/min` : '' },
+  heart:      { t: 'Heart',      w: 0.15, unit: m => m ? `${m.hr} bpm · HRV ${m.rmssd} ms` : '' },
+  recovery:   { t: 'Recovery',   w: 0.10, unit: m => m ? [m.sleep && `sleep ${m.sleep}h`, m.rhr && `RHR ${m.rhr}`].filter(Boolean).join(' · ') : '' },
+};
 
 const fr = k => ((S.freq = S.freq || {})[k] = S.freq[k] || {});
 const frGet = k => (S.freq || {})[k] || {};
-// score → ladder: average wellbeing sits around the 200 line; low rungs need genuinely low scores.
-// The feeling the user picked anchors the name (35%), so a calm, neutral person is never labelled “Anger”.
-const RUNG_AT = [0, 6, 11, 16, 21, 27, 33, 38, 44, 52, 60, 67, 74, 81, 88, 94];
-const ladderIdx = (sc, emo) => { let i = 0; RUNG_AT.forEach((t, j) => { if (sc >= t) i = j; }); return emo == null ? i : Math.max(0, Math.min(15, Math.round(i * 0.65 + emo * 0.35))); };
-const bandOf = (sc, emo) => { const i = ladderIdx(sc, emo); return Object.entries(BANDS).find(([, b]) => i >= b.from && i <= b.to)[0]; };
-const stepOf = (sc, emo) => { const i = ladderIdx(sc, emo), band = bandOf(sc, emo); return { i, lvl: LADDER[i][0], name: LADDER[i][1], feel: LADDER[i][2], band, color: BANDS[band].color }; };
+const allScans = () => Object.entries(S.freq || {}).sort().flatMap(([k, f]) => (f.scans || []).map(s => ({ ...s, k })));
+const v3Scans = () => allScans().filter(s => s.v === 3);
 
-// behaviours we can already see in the app's own data (the user confirms / adds the rest in the scan)
-function autoBehaviours(k = TODAY) {
-  const h = S.health[k] || {}, sp = (S.spirit || {})[k] || {}, R = S.recovery[k] || {}, E = S.eaten[k] || [];
+const ladderIdx = sc => { let i = 0; for (let j = 0; j < 16; j++) if (sc >= RUNG_AT[j]) i = j; return i; };
+const bandOf = sc => { const i = ladderIdx(sc); return Object.entries(BANDS).find(([, b]) => i >= b.from && i <= b.to)[0]; };
+// continuous index between rungs: 43 → ~190, 58 → ~295 …
+function freqIndex(sc) { const i = ladderIdx(sc), a = LADDER[i][0], b = i < 15 ? LADDER[i + 1][0] : 700, f = (sc - RUNG_AT[i]) / (RUNG_AT[i + 1] - RUNG_AT[i]); return Math.round(a + (b - a) * Math.max(0, Math.min(1, f))); }
+const stepOf = sc => { const i = ladderIdx(sc), band = bandOf(sc); return { i, lvl: freqIndex(sc), rung: LADDER[i][0], name: LADDER[i][1], band, color: BANDS[band].color }; };
+
+// raw metrics → dimension values; personal calibration once there is history
+function dimensionScores(m) {
+  const d = {};
+  if (m.breath?.ok) d.breath = m.breath.score;
+  if (m.voice?.ok) d.voice = m.voice.score;
+  if (m.field?.ok || m.smiles?.ok) d.perception = [m.field?.ok && m.field.score, m.smiles?.ok && m.smiles.score].filter(x => x !== false && x != null).reduce((a, b, _, arr) => a + b / arr.length, 0);
+  if (m.heart?.ok) d.heart = m.heart.score;
+  if (m.recovery?.ok) d.recovery = m.recovery.score;
+  const hist = v3Scans().filter(s => s.kind !== 'after');
+  if (hist.length >= 5) for (const k of Object.keys(d)) {
+    const past = hist.map(s => s.dims?.[k]).filter(x => x != null); if (past.length < 5) continue;
+    const med = median(past), spread = Math.max(0.05, sd(past));
+    d[k] = clamp01(d[k] * 0.6 + clamp01(0.5 + (d[k] - med) / (spread * 4)) * 0.4);
+  }
+  return d;
+}
+function scoreOf(d) { const k = Object.keys(d); if (!k.length) return null; const w = k.reduce((a, x) => a + DIMS[x].w, 0); return Math.max(1, Math.min(100, Math.round(k.reduce((a, x) => a + DIMS[x].w * d[x], 0) / w * 100))); }
+function weakest(d) { return Object.entries(d).filter(([k]) => k !== 'recovery' || Object.keys(d).length === 1).sort((a, b) => a[1] - b[1]).map(([k]) => k); }
+function metricsLine(m) { return { breath: m.breath?.ok ? m.breath : null, voice: m.voice?.ok ? m.voice : null, perception: m.field?.ok || m.smiles?.ok ? { field: m.field?.width ?? '—', perMin: m.smiles?.perMin ?? '—' } : null, heart: m.heart?.ok ? m.heart : null, recovery: m.recovery?.ok ? m.recovery : null }; }
+
+function lastScan(k = TODAY) { const s = (frGet(k).scans || []).filter(x => x.kind !== 'after'); return s.length ? s[s.length - 1] : null; }
+function latestReading(k = TODAY) { const s = frGet(k).scans || []; return s.length ? s[s.length - 1] : null; }
+function vibeScore(k = TODAY) { const s = latestReading(k); if (s) return s.score; const c = frGet(k).check; return c ? Math.round(Object.values(c).reduce((a, b) => a + b, 0) / Object.values(c).length * 10) : null; }
+function vibeToday() { const sc = vibeScore(); if (sc == null) return null; const st = stepOf(sc); return { score: sc, name: st.name, lvl: st.lvl, color: st.color, band: st.band }; }
+function avgScore(days, offset = 0) { const v = lastDays(days + offset).slice(0, days).map(k => vibeScore(k)).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b) / v.length : null; }
+function shiftsAll() { return Object.values(S.freq || {}).flatMap(f => f.shifts || []); }
+function scanStreak() { let n = 0; for (let i = 0; i < 400; i++) { const k = dkey(addDays(new Date(), -i)); if (lastScan(k)) n++; else if (i === 0) continue; else break; } return n; }
+
+// what moves YOUR frequency — from what the app already knows about each day (nothing to fill in)
+function appBehaviours(k) {
+  const h = S.health[k] || {}, sp = (S.spirit || {})[k] || {}, R = S.recovery[k] || {}, E = S.eaten[k] || [], y = S.health[dkey(addDays(fromKey(k), -1))] || {};
   return {
-    sleep: h.sleep >= 7 || undefined,
-    moved: ['done', 'part', 'bonus'].includes(workoutStatus(k)) || h.steps >= 7000 || !!R.swim || undefined,
-    fed: E.filter(x => x === true).length >= 3 || undefined,
-    breath: !!(sp.breath || sp.static || frGet(k).tune) || undefined,
-    grat: !!(sp.journal?.g?.some(Boolean)) || undefined,
+    'Slept 7+ hours': (h.sleep || y.sleep || 0) >= 7, 'Trained': ['done', 'part', 'bonus'].includes(workoutStatus(k)), 'Walked 7k+ steps': (h.steps || 0) >= 7000,
+    'Sauna or swim': !!(R.sauna || R.swim), 'Breathwork': !!(sp.breath || frGet(k).tune), 'Gratitude journal': !!sp.journal?.g?.some(Boolean), 'Ate 4+ planned meals': E.filter(x => x === true).length >= 4,
   };
 }
-function bodySignal(k = TODAY, hum) {
-  const h = S.health[k] || {}, parts = [];
-  if (h.sleep) parts.push(Math.min(1, h.sleep / 8));
-  if (k === TODAY) { const rd = readiness(); if (rd) parts.push(rd.sc / 100); }
-  const hm = hum || frGet(k).hum; if (hm) parts.push(hm.steady / 100);
-  return parts.length ? parts.reduce((a, b) => a + b) / parts.length : null;
-}
-function computeScore(sc) {
-  const parts = [
-    [0.35, sc.who ? sc.who.reduce((a, b) => a + b, 0) / 25 : null],
-    [0.15, sc.stress != null ? ((10 - sc.stress) + sc.control) / 20 : null],
-    [0.20, sc.emo != null ? sc.emo / 15 : null],
-    [0.15, bodySignal(TODAY, sc.hum)],
-    [0.15, sc.beh ? Object.values(sc.beh).filter(Boolean).length / BEHAVIOURS.length : null],
-  ].filter(p => p[1] != null);
-  const w = parts.reduce((a, p) => a + p[0], 0);
-  return Math.max(1, Math.min(100, Math.round(parts.reduce((a, p) => a + p[0] * p[1], 0) / w * 100)));
-}
-function lastScan(k = TODAY) { const s = frGet(k).scans; return s?.length ? s[s.length - 1] : null; }
-function vibeScore(k = TODAY) {
-  const s = lastScan(k); if (s) return s.score;
-  const c = frGet(k).check; if (!c) return null; // legacy quick check-in
-  return Math.round(Object.values(c).reduce((a, b) => a + b, 0) / Object.values(c).length * 10);
-}
-function vibeToday() { const sc = vibeScore(); if (sc == null) return null; const st = stepOf(sc, lastScan()?.emo); return { score: sc, name: st.name, lvl: st.lvl, color: st.color, band: st.band }; }
-function avgScore(days, offset = 0) { const v = lastDays(days + offset).slice(0, days).map(k => vibeScore(k)).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b) / v.length : null; }
-
-// ---- insights: what actually moves YOUR frequency (with vs without, last 60 days) ----
 function insights() {
-  const rows = lastDays(60).map(k => [k, lastScan(k)]).filter(([, s]) => s && s.beh);
-  const out = [];
-  for (const [id, ic, label] of BEHAVIOURS) {
-    const on = rows.filter(([, s]) => s.beh[id]).map(([, s]) => s.score), off = rows.filter(([, s]) => !s.beh[id]).map(([, s]) => s.score);
-    if (on.length >= 3 && off.length >= 3) { const d = on.reduce((a, b) => a + b) / on.length - off.reduce((a, b) => a + b) / off.length; if (Math.abs(d) >= 3) out.push({ ic, label, d: Math.round(d), n: rows.length }); }
+  const days = lastDays(60).filter(k => lastScan(k)); if (days.length < 6) return [];
+  const out = []; const labels = Object.keys(appBehaviours(TODAY));
+  for (const l of labels) {
+    const on = days.filter(k => appBehaviours(k)[l]).map(k => lastScan(k).score), off = days.filter(k => !appBehaviours(k)[l]).map(k => lastScan(k).score);
+    if (on.length >= 3 && off.length >= 3) { const d = mean(on) - mean(off); if (Math.abs(d) >= 3) out.push({ label: l, d: Math.round(freqIndex(Math.min(100, 50 + d)) - freqIndex(50)), n: days.length }); }
   }
   return out.sort((a, b) => b.d - a.d);
 }
-function shiftsAll() { return Object.values(S.freq || {}).flatMap(f => f.shifts || []); }
-function scanStreak() { let n = 0; for (let i = 0; i < 400; i++) { const k = dkey(addDays(new Date(), -i)); if (lastScan(k)) n++; else if (i === 0) continue; else break; } return n; }
-const BADGES = [
-  ['first', '🌱', 'First scan', () => Object.values(S.freq || {}).some(f => f.scans?.length)],
-  ['line', '🔥', 'Crossed the 200 line', () => Object.values(S.freq || {}).some(f => (f.scans || []).some(s => ladderIdx(s.score, s.emo) >= 8))],
-  ['shift', '🌊', 'First shift', () => shiftsAll().length > 0],
-  ['jump', '🚀', '+20 in one shift', () => shiftsAll().some(s => s.delta >= 20)],
-  ['week', '📅', '7-day scan streak', () => scanStreak() >= 7],
-  ['peace', '🕊️', 'Reached Peace', () => Object.values(S.freq || {}).some(f => (f.scans || []).some(s => s.score >= 94))],
-  ['thirty', '💎', '30 scans', () => Object.values(S.freq || {}).reduce((a, f) => a + (f.scans?.length || 0), 0) >= 30],
-];
-// WHO-5 guidance: raw score ≤ 13 (≤ 52%) over time = poor wellbeing → suggest talking to someone
-function lowForAWhile() { const v = lastDays(14).map(k => lastScan(k)).filter(Boolean); return v.length >= 7 && v.filter(s => s.who && s.who.reduce((a, b) => a + b) <= 13).length >= 5; }
