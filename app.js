@@ -250,19 +250,8 @@ function recoveryCard() {
         ${st === 'miss' ? `<button class="btn sm" onclick="unmarkMiss('${kind}')">↩︎</button>` : !done ? `<button class="btn sm ghost-bad" onclick="markMiss('${kind}')" aria-label="Couldn’t make it">✕</button>` : ''}</div>`; }).join('')}
   </div>`;
 }
-function logSwim() {
-  const R = S.recovery[TODAY] = S.recovery[TODAY] || {};
-  const min = prompt('Swim — how many minutes? (0 = delete)', R.swim?.min || 30); if (min === null) return;
-  if (+min === 0) { delete R.swim; save(); return render(); }
-  const m = prompt('Distance in meters (optional):', R.swim?.m || '');
-  R.swim = { min: +min || 0, m: +m || R.swim?.m || 0 }; delete R.swimMiss; save(); render(); toast('🏊 Swim logged');
-}
-function logSauna() {
-  const R = S.recovery[TODAY] = S.recovery[TODAY] || {};
-  const min = prompt('sauna — total minutes? (0 = delete)', R.sauna?.min || 30); if (min === null) return;
-  if (+min === 0) { delete R.sauna; save(); return render(); }
-  R.sauna = { min: +min || 0 }; delete R.saunaMiss; save(); render(); toast('🧖 Sauna logged · drink 0.5-1 L water');
-}
+function logSwim() { timed('swim'); }
+function logSauna() { timed('sauna'); }
 function swimPlan() {
   return `<h2>🏊 ${SWIM_PLAN.t}</h2><div class="card"><div class="sub">~${SWIM_PLAN.min} min · ${SWIM_PLAN.m}m</div>
     <ol class="steps" style="margin-top:8px">${SWIM_PLAN.sets.map(([d, t]) => `<li><b>${d}</b> — ${esc(t)}</li>`).join('')}</ol>
@@ -272,8 +261,8 @@ function swimPlan() {
 function saunaProtocol() {
   return `<h2>🧖 Sauna protocol</h2><div class="card">${SAUNA_PROTOCOL.steps.map(([e, t, p]) => `<div class="why"><div class="e">${e}</div><div><b>${t}</b><p>${p}</p></div></div>`).join('')}<p class="note">🔬 ${SAUNA_PROTOCOL.why}</p></div>`;
 }
-function toggleCreatine() { S.creatine[TODAY] = !S.creatine[TODAY]; save(); render(); }
-function addWater(n) { S.water[TODAY] = Math.max(0, (S.water[TODAY] || 0) + n); save(); render(); }
+function toggleCreatine() { if (!S.creatine[TODAY]) morningGlass(); }
+function addWater() { drinkMoment(false); }
 
 // ---------- TRAIN ----------
 function vTrain() {
@@ -421,7 +410,7 @@ function vFood() {
     ${dateKey ? `<div style="margin-top:10px"><div class="row between sub"><span>Eaten: ${fmt(got.k)} kcal · ${Math.round(got.p)}g protein</span><span>${Math.round(got.k / t.kcal * 100)}%</span></div><div class="bar"><i style="width:${Math.min(100, got.k / t.kcal * 100)}%"></i></div></div>` : ''}
     ${adv ? `<div class="spine" style="margin-top:10px;color:${adv.d ? 'var(--warn)' : 'var(--good)'};background:var(--card2)">📊 ${adv.t}${adv.d ? ` <button class="btn sm acc" style="margin-left:6px" onclick="S.kcalAdj=(S.kcalAdj||0)+${adv.d};save();render()">Apply</button>` : ''}</div>` : `<div class="note">⚖️ Weigh yourself in the morning, 2 weeks the app will adjust your calories automatically.</div>`}
   </div>
-  <div class="card"><div class="row between"><div class="sub">💧 Water · 250 ml glass</div><b>${S.water[TODAY] || 0}/${t.water} glasses</b></div><div class="water">${Array.from({ length: Math.min(t.water, 16) }, (_, k) => `<button class="${k < (S.water[TODAY] || 0) ? 'f' : ''}" onclick="S.water[TODAY]=${k + 1 === (S.water[TODAY] || 0) ? k : k + 1};save();render()" aria-label="glasses ${k + 1}"></button>`).join('')}</div></div>
+  <div class="card"><div class="row between"><div class="sub">💧 Water · 250 ml glass</div><b>${S.water[TODAY] || 0}/${t.water} glasses</b></div><div class="water">${Array.from({ length: Math.min(t.water, 16) }, (_, k) => `<i class="${k < (S.water[TODAY] || 0) ? 'f' : ''}"></i>`).join('')}</div><button class="btn sm acc" style="margin-top:10px" onclick="drinkMoment(false)">💧 Drink moment · 20 s</button> ${S.creatine[TODAY] ? '<span class="pill good">creatine ✓</span>' : '<button class="btn sm" style="margin-top:10px" onclick="morningGlass()">💊 Glass with creatine</button>'}</div>
   ` : profileForm()}
 
 <!--SEG:menu-->
@@ -444,7 +433,7 @@ function mealCard(id, k, f, state, canEat) {
     <div class="macros"><span><b>${fmt(m.k * f)}</b> kcal</span><span>P <b>${Math.round(m.p * f)}</b>g</span><span>C <b>${Math.round(m.c * f)}</b>g</span><span>F <b>${Math.round(m.f * f)}</b>g</span></div>
     <details><summary>Ingredients & method</summary><ul>${m.i.map(([gr, n]) => `<li>${g(gr)}${esc(n)}</li>`).join('')}</ul><ol>${m.s.map(s => `<li>${esc(s)}</li>`).join('')}</ol></details>
     ${canEat ? (state ? `<div class="row eat" style="gap:8px"><span class="pill ${isEaten ? 'good' : 'bad'}">${isEaten ? '✓ Ate it' : state === 'skip' ? '✕ Skipped' : '⚠ Ate something else'}</span><button class="btn sm" onclick="eat(${k}, null)">↩︎ Undo</button></div>`
-      : `<div class="row eat" style="gap:6px"><button class="btn sm acc" style="flex:1" onclick="eat(${k}, true)">✓ Ate it</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'skip')">✕ Skipped</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'off')">⚠ Other</button></div>`) : ''}
+      : `<div class="row eat" style="gap:6px"><button class="btn sm acc" style="flex:1" onclick="pickPhoto(${k})">📷 Log with photo</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'skip')">✕ Skipped</button><button class="btn sm ghost-bad" onclick="eat(${k}, 'off')">⚠ Other</button></div>`) : ''}
   </div></div>`;
 }
 function eat(k, v) { const e = S.eaten[TODAY] = S.eaten[TODAY] || []; e[k] = v; save(); render(); if (v === 'skip' || v === 'off') toast('❌ Logged — it counts in your stats'); }

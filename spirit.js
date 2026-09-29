@@ -8,12 +8,12 @@ function staticTarget() { return S.staticOverride || Math.min(60, 15 + 5 * Math.
 function staticNext() { const n = staticDone(), t = staticTarget(); return t >= 60 ? 'You’re at the max — 60 min' : `Another ${3 - n % 3} sessions → ${t + 5} min`; }
 
 const SLEEP_RITUAL = [
-  ['screen', '📵', 'Put the screen away 30-60 min before', 'blue light suppresses melatonin; phone in another room or Night Shift + Sleep Focus.'],
+  ['screen', '📵', 'Phone to sleep — 30 min screen-free', 'Night mode: the phone lies face-down and untouched. It counts itself after 30 minutes and tells you in the morning how long you rested.'],
   ['dump', '📝', 'Brain dump — Empty your mind', 'write down tomorrow’s tasks and thoughts. Scullin et al. 2018: 5-minute to-do list speeds up falling asleep by ~9 minutes.'],
   ['journal', '🙏', 'Gratitude + manifestation', '3 gratitudes and a present-tense manifestation — your mind ends the day on a positive note.'],
   ['478', '🌬️', '4-7-8 Breathing ×4', 'Inhale 4, hold 7, exhale 8 — parasympathetic system, heart rate slows down.'],
   ['scan', '🧘', 'Body scan — calm the body', '10 minutes: attention from your toes to your head, every muscle gradually relaxes (Yoga Nidra basics).'],
-  ['room', '🌡️', 'Room: cool (18-19°C), dark, quiet', 'a lower body temperature signals sleep. Sleep 1-2 h after a sauna is especially deep.'],
+  ['room', '🌡️', 'Dark, quiet room', 'Measured in Night mode: the camera checks the light, the microphone the noise. Keep it cool too — about 18–19 °C.'],
 ];
 const BODY_SCAN = ['Toes and feet', 'Ankles and calves', 'Knees and thighs', 'Pelvis and glutes', 'Belly — breathing slows', 'Lower back and spine — every vertebra releases', 'Chest and heart', 'Shoulders — drop them away from your ears', 'Arms, hands, fingers', 'Neck and jaw — unclench your teeth', 'Face, eyes, forehead', 'The whole body together — heavy, warm, safe'];
 const MANI_PROMPTS = ['I am a strong, healthy athlete, and my body grows every day..', 'I am a successful DJ/producer, and my music brings people together..', 'I speak Portuguese and English fluently..', 'Every day brings me closer to my best self..'];
@@ -78,7 +78,7 @@ function drum(v = .35) { try { actx = actx || new (window.AudioContext || window
 function startBreath() {
   tone(660, .1, .01); keepAwake();
   SES = { kind: 'dmt', steps: dmtSteps(), i: 0, t0: Date.now(), holds: [], bottom: null, beat: -1 };
-  SES.onEnd = () => { if (SES.holds.length) { sp(TODAY).breath = { r: SES.holds, bottom: SES.bottom, v: 2, t: Date.now() }; save(); toast('🌬️ DMT breathing logged'); } };
+  SES.onEnd = () => { if (SES.holds.length) { sp(TODAY).breath = { r: SES.holds, bottom: SES.bottom, v: 2, t: Date.now() }; save(); toast('🌬️ DMT breathing logged'); if (!S.creatine[TODAY]) setTimeout(morningGlass, 700); } };
   overlay(`<button class="x" onclick="closeSession(true)">✕</button><div class="sess-top" id="sTop"></div><div class="orb" id="orb"></div><div class="sess-big" id="sBig"></div><div class="sess-sub" id="sSub"></div><div class="sess-steps" id="sSteps"></div><button class="btn acc" id="sBtn" hidden onclick="dmtNext(true)"></button>`);
   gong(); SES.int = setInterval(dmtTick, 50); dmtTick();
 }
@@ -228,8 +228,8 @@ function vSpirit() {
     <button class="btn acc block" style="margin-top:10px" onclick="saveJournal()">Save</button>`)}
 
   <div class="card"><div class="row between"><b>🌌 Sleep cleanse ritual</b><span class="sub">${(s.sleep || []).length}/${SLEEP_RITUAL.length}</span></div>
-    ${SLEEP_RITUAL.map(([id, ic, t, p]) => `<div class="rit ${(s.sleep || []).includes(id) ? 'on' : ''}"><button class="ck" onclick="toggleRitual('${id}')" aria-label="${esc(t)}"></button><div><b>${ic} ${t}</b><p>${p}</p>
-      ${id === '478' ? '<button class="btn sm acc" onclick="start478()">▶ 4-7-8 (1.5 min)</button>' : id === 'scan' ? '<button class="btn sm acc" onclick="startScan()">▶ Body scan (10 min)</button>' : ''}</div></div>`).join('')}
+    ${SLEEP_RITUAL.map(([id, ic, t, p]) => `<div class="rit ${(s.sleep || []).includes(id) ? 'on' : ''}"><span class="ck" aria-label="${(s.sleep || []).includes(id) ? 'done' : 'not yet'}"></span><div><b>${ic} ${t}</b><p>${p}</p>
+      ${id === '478' ? '<button class="btn sm acc" onclick="start478()">▶ 4-7-8 (1.5 min)</button>' : id === 'scan' ? '<button class="btn sm acc" onclick="startScan()">▶ Body scan (10 min)</button>' : id === 'screen' || id === 'room' ? '<button class="btn sm acc" onclick="nightMode()">🌙 Night mode</button>' : id === 'dump' || id === 'journal' ? '<span class="sub">completes when you save the journal above</span>' : ''}</div></div>`).join('')}
     ${hr >= 20 ? '<p class="note">🕯️ Ritual order: screen → brain dump → Journal → 4-7-8 → body scan in bed. finally, phone far away.</p>' : ''}
   </div>
 

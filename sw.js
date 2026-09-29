@@ -1,5 +1,5 @@
-const CACHE = 'coach-v8';
-const SHELL = ['./', 'index.html', 'app.js', 'data.js', 'discipline.js', 'words.js', 'foodlog.js', 'spirit.js', 'learn.js', 'migrate.js', 'ui.js', 'today.js', 'sense.js', 'perception.js', 'freq-core.js', 'fflow.js', 'freq.js', 'manifest.webmanifest', 'img/icons/icon-180.png', 'img/icons/icon-192.png'];
+const CACHE = 'coach-v9';
+const SHELL = ['./', 'index.html', 'app.js', 'data.js', 'discipline.js', 'words.js', 'foodlog.js', 'spirit.js', 'learn.js', 'migrate.js', 'ui.js', 'today.js', 'sense.js', 'perception.js', 'freq-core.js', 'fflow.js', 'habits.js', 'freq.js', 'manifest.webmanifest', 'img/icons/icon-180.png', 'img/icons/icon-192.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

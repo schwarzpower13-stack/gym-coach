@@ -5,15 +5,16 @@ function todayItems() {
   const left = queueOf('pt').due.length + queueOf('pt').newLeft + queueOf('en').due.length + queueOf('en').newLeft;
   const it = [
     { id: 'breath', when: 0, ic: '🌬️', t: 'DMT breathing', sub: '16 min · on waking', s: spStatus('breath', TODAY), go: "goSeg('spirit','morning')" },
-    { id: 'creatine', when: 0, ic: '💊', t: 'Creatine 5 g', sub: 'any time', s: S.creatine[TODAY] ? 'done' : 'pend', go: 'toggleCreatine()', quick: 1 },
-    { id: 'water', when: 0, ic: '💧', t: `Water ${w}/${goal}`, sub: 'tap = +1 glass', s: w >= goal * 0.8 ? 'done' : 'pend', go: 'addWater(1)', quick: 1 },
+    { id: 'creatine', when: 0, ic: '💊', t: 'Morning glass · creatine', sub: '30 s · follows your breathing', s: S.creatine[TODAY] ? 'done' : 'pend', go: 'morningGlass()', quick: 1 },
+    { id: 'water', when: 0, ic: '💧', t: `Water ${w}/${goal}`, sub: '20-second drink moment', s: w >= goal * 0.8 ? 'done' : 'pend', go: 'drinkMoment(false)', quick: 1 },
   ];
   if (!plan.rest) it.push({ id: 'workout', when: 1, ic: '🏋️', t: plan.t, sub: plan.f, s: workoutStatus(TODAY), go: `SEL_DAY=${i};go('train')` });
   it.push({ id: 'meals', when: 1, ic: '🍽️', t: `Meals ${eaten}/5`, sub: 'snap a photo before eating', s: mealStatus(TODAY), go: "goSeg('food','today')" });
-  if (pl.swim.includes(i)) it.push({ id: 'swim', when: 2, ic: '🏊', t: 'Swim', sub: '20-40 min, easy', s: recStatus('swim', TODAY), go: 'logSwim()' });
-  if (pl.sauna.includes(i)) it.push({ id: 'sauna', when: 2, ic: '🧖', t: 'Sauna', sub: '2-3 rounds after training', s: recStatus('sauna', TODAY), go: 'logSauna()' });
+  if (pl.swim.includes(i)) it.push({ id: 'swim', when: 2, ic: '🏊', t: 'Swim', sub: S.openSession?.kind === 'swim' ? 'running — tap to stop' : 'tap Start at the pool, Stop after', s: recStatus('swim', TODAY), go: "timed('swim')" });
+  if (pl.sauna.includes(i)) it.push({ id: 'sauna', when: 2, ic: '🧖', t: 'Sauna', sub: S.openSession?.kind === 'sauna' ? 'running — tap to stop' : 'tap Start at the door, Stop after', s: recStatus('sauna', TODAY), go: "timed('sauna')" });
   it.push({ id: 'static', when: 2, ic: '🧍', t: `Static pose ${staticTarget()} min`, sub: 'stand, breathe, be still', s: spStatus('static', TODAY), go: "goSeg('spirit','morning')" });
   it.push({ id: 'lang', when: 2, ic: '🗣️', t: 'Words', sub: left ? `${left} waiting` : 'all done', s: learnStatus(TODAY), go: "go('learn')" });
+  it.push({ id: 'night', when: 2, ic: '🌙', t: 'Night mode', sub: 'phone to sleep · 30 min screen-free', s: (spGet(nightKey()).sleep || []).includes('screen') ? 'done' : 'pend', go: 'nightMode()' });
   it.push({ id: 'journal', when: 2, ic: '📖', t: 'Gratitude & manifestation', sub: 'before bed', s: spStatus('journal', TODAY), go: "goSeg('spirit','evening')" });
   return it;
 }
@@ -44,6 +45,7 @@ function vToday() {
   <h1>${greet}</h1>
   <p class="affirm">“${affirmation()}”</p>
   ${moveCard()}
+  ${openBanner()}
 
   <div class="dayhead">
     ${ring(pct, `${Math.round(pct * 100)}%`)}
